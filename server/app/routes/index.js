@@ -45,11 +45,11 @@ app.route(user_url)
 
         if (username && password) {
             new userModel(req.body).save(err => {
-                if (err) return res.status(409).json({'message': 'Username already exists'});
-                res.status(201).send('Registered');
+                if (err) return res.status(409).json({ 'message': 'Username already exists' });
+                res.status(201).json({ 'message': "Successfully registered, please login now!" });
             });
         } else {
-            res.status(400).json({'message': 'Invalid username or password'});
+            res.status(400).json({ 'message': 'Invalid username or password' });
         }
     })
     // update user
@@ -82,13 +82,13 @@ app.route(login_url)
         userModel.findOne({ username: username }, (err, user) => {
             if (err) throw err;
 
-            if (!user) return res.status(401).send('User not found');
+            if (!user) return res.status(401).json({ 'message': 'User not found' });
 
             user.comparePassword(password, (err, matches) => {
                 if (!err && matches) {
                     res.status(201).json(genToken(user.id));
                 } else {
-                    res.status(401).send('Authentication failed, wrong password');
+                    res.status(401).json({ 'message': 'Authentication failed, wrong password' });
                 }
             });
         })

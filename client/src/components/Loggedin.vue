@@ -1,22 +1,12 @@
 <template lang="pug">
   div#app
-    router-link(to="/")
-      | Home
-    |  
-    router-link(to="/register")
-      | Register
-    | 
-    router-link(to="/login")
-      | Login
-    br
-    br
-    img(src="./assets/logo.png")
-    router-view
+    h1
+      | Welcome my friend! You are now logged in!
 </template>
 
 <script>
 export default {
-  name: "App"
+  name: "LoggedIn"
 };
 </script>
 

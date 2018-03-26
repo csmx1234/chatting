@@ -1,40 +1,40 @@
 <template lang="pug">
   div#register
     h1
-      | Register
+      | Login
     | Username 
     input(v-model="username" name="username" placeholder="username")
     br
     | Password 
     input(v-model="password" name="password" placeholder="password")
     br
-    button(v-on:click="register") Register
+    button(v-on:click="login") Login
 </template>
 
 <script>
 import axios from "axios";
 
 export default {
-  name: "Register",
+  name: "Login",
   data: function() {
     return {
-      username: "",
-      password: ""
-    };
+      username: '',
+      password: ''
+    }
   },
   methods: {
-    async register() {
+    async login() {
       try {
         const response = await axios({
           method: "post",
-          url: "http://0.0.0.0:1234/api/v1/user",
+          url: "http://0.0.0.0:1234/api/v1/login",
           data: {
             username: this.username,
             password: this.password
           }
         });
-        alert(response.data.message);
-        this.$router.push("/login");
+        alert(JSON.stringify(response.data));
+        this.$router.push("/loggedin");
       } catch (error) {
         if (error.response) alert(error.response.data.message);
       }
