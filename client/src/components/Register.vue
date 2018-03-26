@@ -26,7 +26,7 @@ export default {
     async register() {
       await axios({
         method: "post",
-        url: "http://127.0.0.1:1234/api/v1/user",
+        url: "http://45.32.65.216:1234/api/v1/user",
         data: {
           username: this.username,
           password: this.password
