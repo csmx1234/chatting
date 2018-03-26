@@ -1,0 +1,59 @@
+'use strict';
+
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
+const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    unique: true,
+    required: true,
+    validate: [v => {
+      // validates to see if username is admin
+      return v != 'admin';
+    }, 'admin is a motherfucker']
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String
+  },
+  phone: {
+    type: String,
+    //    unique: true
+  },
+  friends: [{}],
+  questions_picked: [{}],
+  questions_answered: [{}]
+});
+
+// salt and hash in pre hook
+UserSchema.pre('save', function (next) {
+
+  const user = this;
+
+  if (this.isModified('password') || this.isNew) {
+    bcrypt.genSalt(10, (error, salt) => {
+      if (error) return next(error);
+      bcrypt.hash(user.password, salt, (error, hash) => {
+        if (error) return next(error);
+        user.password = hash;
+        next();
+      });
+    });
+  } else {
+    return next();
+  }
+});
+
+// functiont that comparies passwords
+UserSchema.methods.comparePassword = function (password, callback) {
+  bcrypt.compare(password, this.password, (error, matches) => {
+    if (error) return callback(error);
+    callback(null, matches);
+  });
+};
+
+module.exports = mongoose.model('User', UserSchema);
