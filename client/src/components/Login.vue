@@ -27,7 +27,7 @@ export default {
       try {
         const response = await axios({
           method: "post",
-          url: "http://0.0.0.0:1234/api/v1/login",
+          url: "https://45.32.65.216:1234/api/v1/login",
           data: {
             username: this.username,
             password: this.password

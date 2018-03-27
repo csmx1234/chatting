@@ -4,17 +4,26 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const https = require('https');
+const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+
+// signed certificate
+const options = {
+	key: fs.readFileSync('./cert/key.pem'),
+	cert: fs.readFileSync('./cert/cert.pem')
+}
 
 // app components
 const config = require('./app/config');
 const setup = require('./app/setup');
 const routes = require('./app/routes');
 
-// setup port
+// setup port and ip
 const port = process.env.PORT || config.port;
+const ip = config.ip;
 
 // middleware
 app.use(cors());
@@ -32,6 +41,6 @@ db.on('error', console.error.bind(console, 'MongoDB conneciton error'));
 // test
 if (config.TEST) setup();
 
-app.listen(port);
+https.createServer(options, app).listen(port, ip);
 
 module.exports = app;
