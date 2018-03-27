@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
 // signed certificate
 const options = {
 	key: fs.readFileSync('./cert/key.pem'),
-	cert: fs.readFileSync('./cert/cert.pem')
+	cert: fs.readFileSync('./cert/server.crt')
 }
 
 // app components
@@ -41,6 +41,6 @@ db.on('error', console.error.bind(console, 'MongoDB conneciton error'));
 // test
 if (config.TEST) setup();
 
-https.createServer(options, app).listen(port, ip);
+https.createServer(options, app).listen(port);
 
 module.exports = app;

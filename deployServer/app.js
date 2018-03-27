@@ -5,9 +5,9 @@ const express = require('express');
 const app = express();
 const options = {
 	key: fs.readFileSync('key.pem'),
-	cert: fs.readFileSync('cert.pem')
+	cert: fs.readFileSync('server.crt')
 }
 
 app.use(express.static(path.resolve(__dirname, './dist')));
 
-https.createServer(options, app).listen(3000);
+https.createServer(options, app).listen(8081);
