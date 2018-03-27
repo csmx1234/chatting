@@ -15,6 +15,8 @@ const options = {
 	key: fs.readFileSync('./cert/key.pem'),
 	cert: fs.readFileSync('./cert/server.crt')
 }
+const server = https.createServer(options, app);
+const io = require('socket.io')(server);
 
 // app components
 const config = require('./app/config');
@@ -23,7 +25,6 @@ const routes = require('./app/routes');
 
 // setup port and ip
 const port = process.env.PORT || config.port;
-const ip = config.ip;
 
 // middleware
 app.use(cors());
@@ -38,9 +39,14 @@ mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB conneciton error'));
 
+// socket.io listening
+io.on('connection', (socket) => {
+	console.log('a user connected');
+});
+
 // test
 if (config.TEST) setup();
 
-https.createServer(options, app).listen(port);
+server.listen(port);
 
 module.exports = app;

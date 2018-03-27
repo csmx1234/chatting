@@ -1,7 +1,6 @@
 module.exports = {
   TEST: false,
   port: 1234,
-  ip: '0.0.0.0',
   secret: 'lppssb0227$$',
   session: { session: false },
   database: 'mongodb://127.0.0.1:27017/serverDB',

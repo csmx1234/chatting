@@ -5,9 +5,13 @@
 </template>
 
 <script>
+import io from 'socket.io-client'
+
+const socket = io.connect('https://localhost:1234')
+
 export default {
   name: "LoggedIn"
-};
+}
 </script>
 
 <style>
