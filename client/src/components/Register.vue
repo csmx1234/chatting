@@ -12,7 +12,8 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios'
+import store from '../store'
 
 export default {
   name: "Register",
@@ -27,7 +28,7 @@ export default {
       try {
         const response = await axios({
           method: "post",
-          url: "https://localhost:1234/api/v1/user",
+          url: `https://${store.getters.url}:1234/api/v1/user`,
           data: {
             username: this.username,
             password: this.password
