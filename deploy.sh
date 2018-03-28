@@ -1,4 +1,5 @@
 #!/bin/bash
+vim client/src/store/index.js 
 
 # server
 cd server

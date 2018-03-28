@@ -7,7 +7,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         loggedin: false,
-        dev: true,
+        dev: false,
         dev_url: 'localhost',
         prod_url: '45.32.65.216',
         socket: null
