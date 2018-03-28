@@ -22,6 +22,7 @@ const io = require('socket.io')(server);
 const config = require('./app/config');
 const setup = require('./app/setup');
 const routes = require('./app/routes');
+const chatapp = require('./app/socket')(io);
 
 // setup port and ip
 const port = process.env.PORT || config.port;
@@ -38,11 +39,6 @@ mongoose.connect(config.database);
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB conneciton error'));
-
-// socket.io listening
-io.on('connection', (socket) => {
-	console.log('a user connected');
-});
 
 // test
 if (config.TEST) setup();

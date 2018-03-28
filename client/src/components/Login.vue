@@ -2,12 +2,13 @@
   div#register
     h1
       | Login
-    | Username 
-    input(v-model="username" name="username" placeholder="username")
-    br
-    | Password 
-    input(v-model="password" name="password" placeholder="password")
-    br
+    div#inputBox
+      | Username 
+      input(v-model="username" name="username" placeholder="username")
+      br
+      | Password 
+      input(v-model="password" name="password" placeholder="password")
+      br
     button(v-on:click="login") Login
 </template>
 
@@ -45,13 +46,4 @@ export default {
 };
 </script>
 
-<style>
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style></style>

@@ -18,13 +18,13 @@
 </template>
 
 <script>
-import store from './store'
+import store from "./store";
 
 export default {
   name: "App",
   computed: {
     isLoggedIn: function() {
-      return store.state.loggedin
+      return store.state.loggedin;
     }
   }
 };
@@ -38,5 +38,8 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+#inputBox {
 }
 </style>

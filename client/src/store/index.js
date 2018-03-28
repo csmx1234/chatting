@@ -7,14 +7,15 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         loggedin: false,
-        dev: false,
+        dev: true,
         dev_url: 'localhost',
-        prod_url: '45.32.65.216'
+        prod_url: '45.32.65.216',
+        socket: null
     },
     mutations: {
         login(state) {
             state.loggedin = true
-            const socket = io.connect(`https://${state.dev?state.dev_url:state.prod_url}:1234`)
+            state.socket = io.connect(`https://${state.dev?state.dev_url:state.prod_url}:1234`)
         },
         logout(state) {
             state.loggedin = false
