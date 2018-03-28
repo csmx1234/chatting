@@ -12,15 +12,16 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios'
+import store from '../store'
 
 export default {
   name: "Login",
   data: function() {
     return {
-      username: '',
-      password: ''
-    }
+      username: "",
+      password: ""
+    };
   },
   methods: {
     async login() {
@@ -33,10 +34,11 @@ export default {
             password: this.password
           }
         });
-        alert(JSON.stringify(response.data));
-        this.$router.push("/loggedin");
+        alert(JSON.stringify(response.data))
+        this.$router.push("/loggedin")
+        store.commit('login')
       } catch (error) {
-        if (error.response) alert(error.response.data.message);
+        if (error.response) alert(error.response.data.message)
       }
     }
   }

@@ -1,13 +1,18 @@
 <template lang="pug">
   div#app
     h1
-      | Welcome my friend! You are now logged in!
+      | Goodbye my friend! You are now logged out!
 </template>
 
 <script>
+import store from '../store'
+
 export default {
-  name: "LoggedIn"
-}
+  name: 'LoggedOut',
+  mounted() {
+    store.commit('logout')
+  }
+};
 </script>
 
 <style>

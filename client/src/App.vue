@@ -3,11 +3,14 @@
     router-link(to="/")
       | Home
     |  
-    router-link(to="/register")
+    router-link(v-if='!isLoggedIn' to="/register")
       | Register
     | 
-    router-link(to="/login")
+    router-link(v-if='!isLoggedIn' to="/login")
       | Login
+    | 
+    router-link(v-if='isLoggedIn' to="/logout")
+      | Logout
     br
     br
     img(src="./assets/logo.png")
@@ -15,8 +18,15 @@
 </template>
 
 <script>
+import store from './store'
+
 export default {
-  name: "App"
+  name: "App",
+  computed: {
+    isLoggedIn: function() {
+      return store.state.loggedin
+    }
+  }
 };
 </script>
 
