@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# server
+cd server
+npm i
+tmux new-session -d -s 9 'node index.js'
+cd ..
+
+# client
+cd client
+npm i
+npm run build
+./deploy.sh
+cd ..
+
+# deployserver
+cd deployServer
+npm i
+tmux new-session -d -s 8 'node app.js'
+cd ..
