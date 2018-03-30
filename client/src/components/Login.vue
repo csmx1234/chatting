@@ -13,8 +13,7 @@
 </template>
 
 <script>
-import axios from 'axios'
-import store from '../store'
+import axios from "axios";
 
 export default {
   name: "Login",
@@ -29,17 +28,18 @@ export default {
       try {
         const response = await axios({
           method: "post",
-          url: `https://${store.getters.url}:1234/api/v1/login`,
+          url: `https://${this.$store.getters.getUrl}:1234/api/v1/login`,
           data: {
             username: this.username,
             password: this.password
           }
         });
-        alert(JSON.stringify(response.data))
-        this.$router.push("/loggedin")
-        store.commit('login')
+        //        alert(JSON.stringify(response.data));
+        window.localStorage.setItem("token", response.data.token);
+        this.$store.commit("login");
+        this.$router.push("/chat");
       } catch (error) {
-        if (error.response) alert(error.response.data.message)
+        if (error.response) alert(error.response.data.message);
       }
     }
   }

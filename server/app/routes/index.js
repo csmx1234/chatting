@@ -16,7 +16,7 @@ app.use(auth.initialize());
 
 // function to generate a token based on user id
 const genToken = (id) => {
-    let expires = moment().utc().add({ minutes: 30 }).unix();
+    let expires = moment().utc().add(config.token_exp).unix();
     let token = jwt.encode({
         id: id,
         exp: expires

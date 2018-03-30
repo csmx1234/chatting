@@ -21,12 +21,39 @@ const UserSchema = new mongoose.Schema({
     type: String
   },
   phone: {
-    type: String,
+    type: String
     //    unique: true
   },
-  friends: [{}],
+  reg_date: {
+    type: Date
+  },
+  is_verified: {
+    type: Boolean
+  },
   questions_picked: [{}],
-  questions_answered: [{}]
+  questions_answered: [{}],
+  friend_requests: [{
+    req_user_id: {
+      type: String,
+      required: true
+    },
+    req_msg: {
+      type: String
+    },
+    req_date: {
+      type: Date
+    }
+  }],
+  is_online: {
+    type: Boolean
+  },
+  chat_id: {
+    type: String
+  },
+  chat_room: {
+    type: String
+  },
+  friend_list: [{}]
 });
 
 // salt and hash in pre hook

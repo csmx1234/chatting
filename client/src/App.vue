@@ -3,13 +3,16 @@
     router-link(to="/")
       | Home
     |  
-    router-link(v-if='!isLoggedIn' to="/register")
+    router-link(v-if='getLogin' to="/register")
       | Register
     | 
-    router-link(v-if='!isLoggedIn' to="/login")
+    router-link(v-if='getLogin' to="/login")
       | Login
     | 
-    router-link(v-if='isLoggedIn' to="/logout")
+    router-link(v-if='getLogout' to="/chat")
+      | Chat
+    | 
+    router-link(v-if='getLogout' to="/logout")
       | Logout
     br
     br
@@ -18,15 +21,31 @@
 </template>
 
 <script>
-import store from "./store";
+import { mapGetters } from "vuex";
+import axios from 'axios';
 
 export default {
   name: "App",
-  computed: {
-    isLoggedIn: function() {
-      return store.state.loggedin;
+  created: async function() {
+    if ( window.localStorage.getItem('token') != undefined ) {
+      try {
+      const response = await axios({
+        method: "get",
+        url: `https://${this.$store.getters.getUrl}:1234/api/v1/user`,
+        headers: {
+          Authorization: window.localStorage.getItem("token")
+        }
+      });
+
+      this.$store.commit('login');
+    } catch (error) {
+      if (error == "Error: Request failed with status code 401") {
+        this.$router.push("/login");
+      }
     }
-  }
+    }
+  },
+  computed: mapGetters(['getLogin','getLogout'])
 };
 </script>
 

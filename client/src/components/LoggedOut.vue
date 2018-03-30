@@ -5,12 +5,11 @@
 </template>
 
 <script>
-import store from '../store'
-
 export default {
-  name: 'LoggedOut',
+  name: "LoggedOut",
   mounted() {
-    store.commit('logout')
+    window.localStorage.removeItem("token");
+    this.$store.commit("logout");
   }
 };
 </script>
