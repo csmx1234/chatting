@@ -5,9 +5,10 @@
 </template>
 
 <script>
+// TODO ADD 5 SEC REDIRECT TO HOME
 export default {
   name: "LoggedOut",
-  mounted() {
+  beforeCreate() {
     window.localStorage.removeItem("token");
     this.$store.commit("logout");
   }

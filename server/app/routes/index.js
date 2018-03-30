@@ -29,6 +29,13 @@ const genToken = (id) => {
     }
 };
 
+// function to change database
+const updateValue = (req, res, obj) => {
+    userModel.findByIdAndUpdate(req.user.id, obj, { upsert: true }, (err, user) => {
+        if (err) res.status(503).json({ 'message': `Failed to change ${obj}` });
+    });
+}
+
 app.route(config.api_url).get((req, res) => res.send('Welcome to server api'));
 
 app.route(user_url)
@@ -44,6 +51,7 @@ app.route(user_url)
         let password = req.body.password;
 
         if (username && password) {
+            req.body.reg_date = Date.now();
             new userModel(req.body).save(err => {
                 if (err) return res.status(409).json({ 'message': 'Username already exists' });
                 res.status(201).json({ 'message': "Successfully registered, please login now!" });
@@ -55,20 +63,43 @@ app.route(user_url)
     // update user
     .put(auth.authenticate(), (req, res) => {
         let password = req.body.password;
+        let email = req.body.email;
+        let reg_date = req.body.reg_date;
+        let is_verified = req.body.is_verified;
+        let questions_answered = req.body.questions_answered;
+        let questions_picked = req.body.questions_picked;
+        let friend_request = req.body.friend_request;
+        let req_user_id = req.body.req_user_id;
+        let req_msg = req.body.req_msg;
+        let req_date = req.body.req_date;
+        let is_online = req.body.is_online;
+        let chat_id = req.body.chat_id;
+        let chat_room = req.body.chat_room;
+        let friend_list = req.body.friend_list;
+
+        // change online status
+        if (is_online && chat_id) {
+
+            console.log('got some messages!')
+            // TODO check if already online previously (login on other devices)
+            updateValue(req, res, { 'is_online': is_online });
+            updateValue(req, res, { 'chat_id': chat_id });
+        }
 
         // TODO reengineer the code
-        // since mongoose doens't have pre hook for findByIdAndUpdate, so I'm going to hash my password here
         // change password
-        bcrypt.genSalt(10, (error, salt) => {
-            if (error) return next(error);
-            bcrypt.hash(password, salt, (error, hash) => {
+        // since mongoose doens't have pre hook for findByIdAndUpdate, so I'm going to hash my password here
+        if (password) {
+            bcrypt.genSalt(10, (error, salt) => {
                 if (error) return next(error);
-                userModel.findByIdAndUpdate(req.user.id, { password: hash }, (err, user) => {
-                    if (err) return res.status(503).send('Failed to change password');
-                    res.status(201).send('Successfully changed password');
+                bcrypt.hash(password, salt, (error, hash) => {
+                    if (error) return next(error);
+                    updateValue(req, res, { 'password': hash });
                 });
             });
-        });
+        }
+
+        res.status(201).json({ 'message': 'Successfully updated info' });
     })
     // delete user
     .delete();

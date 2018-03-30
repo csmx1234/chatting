@@ -1,11 +1,11 @@
 <template lang="pug">
   div#app
     h1
-      | Welcome my friend! You are now logged in! Your token is {{token}} Your chat_id is {{getChatId}}
+      | Welcome my friend! You are now logged in! Your token is {{need_to_delete_token}} Your chat_id is {{getChatId}}
       br
       | Let's chat now!
     ul
-      li(v-for='msg in messages')
+      li(v-for='msg in getMsgs')
         | {{ msg }}
     
     input(v-model='message' v-on:keyup.enter='emitMsg' placeholder='please enter message')
@@ -13,40 +13,30 @@
 </template>
 
 <script>
-import axios from "axios";
 import { mapGetters } from "vuex";
 
 export default {
-  name: "LoggedIn",
+  name: "Chat",
   data: function() {
     return {
-      chat_id: null,
-      message: "",
-      messages: []
+      message: ""
     };
   },
-  created: async function() {
+  beforeCreate: async function() {
     try {
-      const response = await axios({
-        method: "get",
-        url: `https://${this.$store.getters.getUrl}:1234/api/v1/user`,
-        headers: {
-          Authorization: window.localStorage.getItem("token")
-        }
-      });
-
-      this.$store.state.socket.on("chat", data => {
-        this.messages.push(data);
-      });
+      let response = await this.$store.dispatch("auth");
+      await this.$store.dispatch("sendChatId");
+      await this.$store.dispatch("connectChat");
     } catch (error) {
+      // TODO regular expression match error message
       if (error == "Error: Request failed with status code 401") {
         this.$router.push("/login");
       }
     }
   },
   computed: {
-    ...mapGetters(["getChatId"]),
-    token: function() {
+    ...mapGetters(["getChatId", "getMsgs"]),
+    need_to_delete_token: function() {
       return window.localStorage.getItem("token");
     }
   },

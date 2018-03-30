@@ -22,30 +22,25 @@
 
 <script>
 import { mapGetters } from "vuex";
-import axios from 'axios';
 
 export default {
   name: "App",
-  created: async function() {
-    if ( window.localStorage.getItem('token') != undefined ) {
-      try {
-      const response = await axios({
-        method: "get",
-        url: `https://${this.$store.getters.getUrl}:1234/api/v1/user`,
-        headers: {
-          Authorization: window.localStorage.getItem("token")
-        }
-      });
-
-      this.$store.commit('login');
-    } catch (error) {
+  beforeCreate: async function() {
+    // if user is still in session, reconnects to chat
+    try {
+      let response = await this.$store.dispatch("auth", response);
+      this.$store.commit("login");
+      this.$router.push("/chat");
+    } 
+    
+    // else redirects to homepage
+    catch (error) {
       if (error == "Error: Request failed with status code 401") {
-        this.$router.push("/login");
+        this.$router.push("/");
       }
     }
-    }
   },
-  computed: mapGetters(['getLogin','getLogout'])
+  computed: mapGetters(["getLogin", "getLogout"])
 };
 </script>
 

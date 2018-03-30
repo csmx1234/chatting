@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
   },
   email: {
     type: String
+    // unique: true
   },
   phone: {
     type: String
@@ -28,7 +29,8 @@ const UserSchema = new mongoose.Schema({
     type: Date
   },
   is_verified: {
-    type: Boolean
+    type: Boolean,
+    default: false
   },
   questions_picked: [{}],
   questions_answered: [{}],
@@ -45,7 +47,8 @@ const UserSchema = new mongoose.Schema({
     }
   }],
   is_online: {
-    type: Boolean
+    type: Boolean,
+    default: false
   },
   chat_id: {
     type: String
