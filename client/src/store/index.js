@@ -31,7 +31,7 @@ export default new Vuex.Store({
 
     // connects to socket when loggedin
     login(state) {
-      state.socket = io.connect(state.full_addr);
+//      state.socket = io.connect(state.full_addr);
       state.login = true;
     },
 
