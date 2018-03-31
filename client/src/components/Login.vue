@@ -9,7 +9,7 @@
       | Password 
       input(v-model="password" name="password" placeholder="password")
       br
-    button(v-on:click="login") Login
+    button(v-if='not_clicked' v-on:click="login") Login
 </template>
 
 <script>
@@ -20,7 +20,8 @@ export default {
   data: function() {
     return {
       username: "",
-      password: ""
+      password: "",
+      not_clicked: true
     };
   },
   beforeCreate: function() {
@@ -28,6 +29,7 @@ export default {
   },
   methods: {
     async login() {
+      this.not_clicked = false;
       try {
         let response = await this.$store.dispatch("login", {
           username: this.username,

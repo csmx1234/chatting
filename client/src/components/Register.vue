@@ -8,7 +8,7 @@
     | Password 
     input(v-model="password" name="password" placeholder="password")
     br
-    button(v-on:click="register") Register
+    button(v-if='not_clicked' v-on:click="register") Register
 </template>
 
 <script>
@@ -19,7 +19,8 @@ export default {
   data: function() {
     return {
       username: "",
-      password: ""
+      password: "",
+      not_clicked: true
     };
   },
   beforeCreate: function() {
@@ -27,6 +28,7 @@ export default {
   },
   methods: {
     async register() {
+      this.not_clicked = false;
       try {
         let response = await this.$store.dispatch("register", {
           username: this.username,
