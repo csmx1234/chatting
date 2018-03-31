@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import io from "socket.io-client";
 import axios from "axios";
+import config from "../config";
 
 Vue.use(Vuex);
 
@@ -11,11 +12,8 @@ export default new Vuex.Store({
     login: false,
 
     // dev state
-    dev: true,
-    dev_url: "localhost",
-    prod_url: "45.32.65.216",
-    port: "1234",
-    api_addr: "/api/v1",
+    full_addr: "",
+    full_api_addr: "",
 
     // chat state
     socket: null,
@@ -23,13 +21,20 @@ export default new Vuex.Store({
     messages: []
   },
   mutations: {
+    // setup url
+    setup(state) {
+      state.full_addr = `https://${
+        config.dev ? config.dev_url : config.prod_url
+      }:${config.port}`;
+      state.full_api_addr = `${state.full_addr}${config.api_addr}`;
+    },
+
+    // connects to socket when loggedin
     login(state) {
-      // connects to socket when loggedin
-      state.socket = io.connect(
-        `https://${state.dev ? state.dev_url : state.prod_url}:${state.port}`
-      );
+      state.socket = io.connect(state.full_addr);
       state.login = true;
     },
+
     logout(state) {
       state.login = false;
     }
@@ -39,10 +44,28 @@ export default new Vuex.Store({
     auth({ commit, state }) {
       return axios({
         method: "get",
-        url: `https://${state.dev ? state.dev_url : state.prod_url}:${state.port}${state.api_addr}/user`,
+        url: state.full_api_addr + "/user",
         headers: {
           Authorization: window.localStorage.getItem("token")
         }
+      });
+    },
+
+    // register with give username and password
+    register({ commit, state }, data) {
+      return axios({
+        method: "post",
+        url: state.full_api_addr + "/user",
+        data: data
+      });
+    },
+
+    // login a user
+    login({ commit, state }, data) {
+      return axios({
+        method: "post",
+        url: state.full_api_addr + "/login",
+        data: data
       });
     },
 
@@ -50,10 +73,10 @@ export default new Vuex.Store({
     sendChatId({ commit, state }) {
       state.socket.on("UPDATE_USER_INFO", data => {
         if ("PING" == data) {
-          console.log('GOT SOME DATA')
+          console.log("GOT SOME DATA");
           return axios({
             method: "put",
-            url: `https://${state.dev ? state.dev_url : state.prod_url}:${state.port}${state.api_addr}/user`,
+            url: state.full_api_addr + "/user",
             headers: {
               Authorization: window.localStorage.getItem("token")
             },
@@ -78,16 +101,16 @@ export default new Vuex.Store({
       return state.dev ? state.dev_url : state.prod_url;
     },
     getChatId(state) {
-      return (null == state.socket) ? 0 : state.socket.id;
+      return null == state.socket ? 0 : state.socket.id;
     },
     getMsgs(state) {
       return state.messages;
     },
-    getLogin(state) {
-      return !state.login;
-    },
-    getLogout(state) {
+    loggedIn(state) {
       return state.login;
+    },
+    loggedOut(state) {
+      return !state.login;
     }
   }
 });

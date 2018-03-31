@@ -3,16 +3,16 @@
     router-link(to="/")
       | Home
     |  
-    router-link(v-if='getLogin' to="/register")
+    router-link(v-if='loggedOut' to="/register")
       | Register
     | 
-    router-link(v-if='getLogin' to="/login")
+    router-link(v-if='loggedOut' to="/login")
       | Login
     | 
-    router-link(v-if='getLogout' to="/chat")
+    router-link(v-if='loggedIn' to="/chat")
       | Chat
     | 
-    router-link(v-if='getLogout' to="/logout")
+    router-link(v-if='loggedIn' to="/logout")
       | Logout
     br
     br
@@ -26,21 +26,24 @@ import { mapGetters } from "vuex";
 export default {
   name: "App",
   beforeCreate: async function() {
+    if (this.$store.getters.loggedIn) return;
+    
+    // setup url
+    this.$store.commit("setup");
+
     // if user is still in session, reconnects to chat
     try {
-      let response = await this.$store.dispatch("auth", response);
+      let response = await this.$store.dispatch("auth");
       this.$store.commit("login");
       this.$router.push("/chat");
-    } 
-    
-    // else redirects to homepage
-    catch (error) {
+    } catch (error) {
+      // else redirects to homepage
       if (error == "Error: Request failed with status code 401") {
         this.$router.push("/");
       }
     }
   },
-  computed: mapGetters(["getLogin", "getLogout"])
+  computed: mapGetters(["loggedIn", "loggedOut"])
 };
 </script>
 

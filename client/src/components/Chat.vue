@@ -23,6 +23,7 @@ export default {
     };
   },
   beforeCreate: async function() {
+    if (this.$store.getters.loggedIn) return;
     try {
       let response = await this.$store.dispatch("auth");
       await this.$store.dispatch("sendChatId");

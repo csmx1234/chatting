@@ -9,6 +9,7 @@
 export default {
   name: "LoggedOut",
   beforeCreate() {
+    if (this.$store.getters.loggedOut) this.$router.push("/");
     window.localStorage.removeItem("token");
     this.$store.commit("logout");
   }

@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from "axios";
 
 export default {
   name: "Register",
@@ -22,16 +22,15 @@ export default {
       password: ""
     };
   },
+  beforeCreate: function() {
+    if (this.$store.getters.loggedIn) this.$router.push("/chat");
+  },
   methods: {
     async register() {
       try {
-        const response = await axios({
-          method: "post",
-          url: `https://${this.$store.getters.getUrl}:1234/api/v1/user`,
-          data: {
-            username: this.username,
-            password: this.password
-          }
+        let response = await this.$store.dispatch("register", {
+          username: this.username,
+          password: this.password
         });
         alert(response.data.message);
         this.$router.push("/login");

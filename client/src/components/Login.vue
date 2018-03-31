@@ -23,16 +23,15 @@ export default {
       password: ""
     };
   },
+  beforeCreate: function() {
+    if (this.$store.getters.loggedIn) this.$router.push("/chat");
+  },
   methods: {
     async login() {
       try {
-        const response = await axios({
-          method: "post",
-          url: `https://${this.$store.getters.getUrl}:1234/api/v1/login`,
-          data: {
-            username: this.username,
-            password: this.password
-          }
+        let response = await this.$store.dispatch("login", {
+          username: this.username,
+          password: this.password
         });
         //        alert(JSON.stringify(response.data));
         window.localStorage.setItem("token", response.data.token);
