@@ -22,18 +22,6 @@ export default {
       message: ""
     };
   },
-  beforeCreate: async function() {
-    if (this.$store.getters.loggedIn) return;
-    try {
-      let response = await this.$store.dispatch("auth");
-      this.$store.commit("login");
-    } catch (error) {
-      // TODO regular expression match error message
-      if (error == "Error: Request failed with status code 401") {
-        this.$router.push("/login");
-      }
-    }
-  },
   computed: {
     ...mapGetters(["getChatId"]),
     getMsgs: function() {

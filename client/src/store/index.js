@@ -32,7 +32,8 @@ export default new Vuex.Store({
     // connects to socket when loggedin
     login(state) {
       state.login = true;
-      state.socket = io(state.full_addr);
+	  //io.path("/chat");
+      state.socket = io(state.full_addr, {forceNew: false});
       state.socket.on("msg", (id, data) => {
         console.log("something happened");
         state.messages.push(id + " says:");
