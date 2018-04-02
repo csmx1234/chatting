@@ -6,12 +6,16 @@ const userModel = require('../models/user');
 const chatapp = (io) => {
     io.on('connection', (socket) => {
         let chat_id = "";
-        socket.emit('chat', 'PING');
-        socket.on('chat', (id, data) => {
+        socket.emit('data', 'PING');
+        socket.on('data', (id, data) => {
             chat_id = id;
-            console.log(chat_id);
+            console.log("chat_id: " + chat_id);
+            console.log("msg: " + data);
+        });
+
+        socket.on('msg', data => {
             console.log(data);
-            socket.emit('chat', 'blah');
+            socket.broadcast.emit('msg', data);
         });
 
         // removes user

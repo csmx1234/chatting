@@ -31,12 +31,17 @@ export default new Vuex.Store({
 
     // connects to socket when loggedin
     login(state) {
+      state.login = true;
       state.socket = io(state.full_addr);
-      state.socket.on("chat", data => {
-        // setup chatid
+      state.socket.on("msg", data => {
+        console.log(data);
+        state.messages.push(data);
+      });
+      state.socket.on("data", data => {
+        // setup chatid with server
         if (null == state.chat_id) {
           state.chat_id = state.socket.id
-          state.socket.emit("chat", state.socket.id, "PONG");
+          state.socket.emit("data", state.socket.id, "PONG");
           axios({
             method: "put",
             url: state.full_api_addr + "/user",
@@ -49,11 +54,8 @@ export default new Vuex.Store({
             }
           });
         }
-
-        // set message
-        state.messages.push(data);
       });
-      state.login = true;
+
     },
 
     // simply changes the status and resets message
@@ -108,7 +110,8 @@ export default new Vuex.Store({
           Authorization: window.localStorage.getItem("token")
         },
         data: {
-          is_online: false
+          is_online: false,
+          chat_id: null
         }
       });
     },
