@@ -33,8 +33,9 @@ export default new Vuex.Store({
     login(state) {
       state.login = true;
       state.socket = io(state.full_addr);
-      state.socket.on("msg", data => {
-        console.log(data);
+      state.socket.on("msg", (id, data) => {
+        console.log("something happened");
+        state.messages.push(id + " says:");
         state.messages.push(data);
       });
       state.socket.on("data", data => {

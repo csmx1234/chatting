@@ -13,9 +13,11 @@ const chatapp = (io) => {
             console.log("msg: " + data);
         });
 
-        socket.on('msg', data => {
+        socket.join('room');
+
+        socket.on('newMsg', data => {
             console.log(data);
-            socket.broadcast.emit('msg', data);
+            socket.to('room').emit('msg', chat_id, data);
         });
 
         // removes user

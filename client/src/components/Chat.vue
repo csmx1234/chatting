@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     emitMsg: function() {
-      this.$store.state.socket.emit("msg", this.message);
+      this.$store.state.socket.emit("newMsg", this.message);
       this.message = "";
     }
   }
