@@ -32,6 +32,7 @@ const genToken = (id) => {
 // function to change database
 const updateValue = (req, res, obj) => {
     userModel.findByIdAndUpdate(req.user.id, obj, { upsert: true }, (err, user) => {
+        console.log(`${user.username} updated to ${JSON.stringify(obj)}`);
         if (err) res.status(503).json({ 'message': `Failed to change ${obj}` });
     });
 }
@@ -64,8 +65,8 @@ app.route(user_url)
     .put(auth.authenticate(), (req, res) => {
         let password = req.body.password;
         let email = req.body.email;
-        let reg_date = req.body.reg_date;
-        let is_verified = req.body.is_verified;
+        // let reg_date = req.body.reg_date;
+        // let is_verified = req.body.is_verified;
         let questions_answered = req.body.questions_answered;
         let questions_picked = req.body.questions_picked;
         let friend_request = req.body.friend_request;
@@ -77,10 +78,8 @@ app.route(user_url)
         let chat_room = req.body.chat_room;
         let friend_list = req.body.friend_list;
 
-        // change online status
+        // set online with chat_id
         if (is_online && chat_id) {
-
-            console.log('got some messages!')
             // TODO check if already online previously (login on other devices)
             updateValue(req, res, { 'is_online': is_online });
             updateValue(req, res, { 'chat_id': chat_id });

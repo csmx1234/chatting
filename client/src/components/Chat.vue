@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     emitMsg: function() {
-      this.$store.state.socket.emit("chat", this.message);
+      this.$store.state.socket.emit("chat", this.$store.getters.getChatId, this.message);
       this.message = "";
     }
   }

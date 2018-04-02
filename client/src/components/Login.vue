@@ -31,13 +31,11 @@ export default {
     async login() {
       this.not_clicked = false;
       try {
-        let response = await this.$store.dispatch("login", {
+        await this.$store.dispatch("login", {
           username: this.username,
           password: this.password
         });
         //        alert(JSON.stringify(response.data));
-        window.localStorage.setItem("token", response.data.token);
-        this.$store.commit("login");
         this.$router.push("/chat");
       } catch (error) {
         if (error.response) {

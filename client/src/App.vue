@@ -33,7 +33,7 @@ export default {
 
     // if user is still in session, reconnects to chat
     try {
-      let response = await this.$store.dispatch("auth");
+      await this.$store.dispatch("auth");
       this.$store.commit("login");
       this.$router.push("/chat");
     } catch (error) {
@@ -42,6 +42,10 @@ export default {
         this.$router.push("/");
       }
     }
+  },
+  destroyed: function() {
+    // TODO this doesn't work
+    // this.$store.dispatch("goOffline");
   },
   computed: mapGetters(["loggedIn", "loggedOut"])
 };

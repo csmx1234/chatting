@@ -30,14 +30,14 @@ export default {
     async register() {
       this.not_clicked = false;
       try {
-        let response = await this.$store.dispatch("register", {
+        await this.$store.dispatch("register", {
           username: this.username,
           password: this.password
         });
-        alert(response.data.message);
         this.$router.push("/login");
       } catch (error) {
         if (error.response) alert(error.response.data.message);
+        this.not_clicked = true;
       }
     }
   }

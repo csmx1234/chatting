@@ -33,19 +33,42 @@ export default new Vuex.Store({
     login(state) {
       state.socket = io(state.full_addr);
       state.socket.on("chat", data => {
+        // setup chatid
+        if (null == state.chat_id) {
+          state.chat_id = state.socket.id
+          state.socket.emit("chat", state.socket.id, "PONG");
+          axios({
+            method: "put",
+            url: state.full_api_addr + "/user",
+            headers: {
+              Authorization: window.localStorage.getItem("token")
+            },
+            data: {
+              is_online: true,
+              chat_id: state.chat_id
+            }
+          });
+        }
+
+        // set message
         state.messages.push(data);
       });
       state.login = true;
     },
 
+    // simply changes the status and resets message
     logout(state) {
+      window.localStorage.removeItem("token");
       state.login = false;
+      state.chat_id = null;
+      state.socket.close();
+      state.messages = [];
     }
   },
   actions: {
     // authencitate user with current token stored in local storage, return the user information
-    auth({ commit, state }) {
-      return axios({
+    async auth({ state }) {
+      await axios({
         method: "get",
         url: state.full_api_addr + "/user",
         headers: {
@@ -55,21 +78,45 @@ export default new Vuex.Store({
     },
 
     // register with give username and password
-    register({ commit, state }, data) {
-      return axios({
+    async register({ state }, data) {
+      let response = await axios({
         method: "post",
         url: state.full_api_addr + "/user",
         data: data
       });
+      alert(response.data.message);
     },
 
     // login a user
-    login({ commit, state }, data) {
-      return axios({
+    async login({ commit, state }, data) {
+      let response = await axios({
         method: "post",
         url: state.full_api_addr + "/login",
         data: data
       });
+
+      window.localStorage.setItem("token", response.data.token);
+      commit('login');
+    },
+
+    // tell server this person going offline
+    async goOffline({ state }) {
+      await axios({
+        method: "put",
+        url: state.full_api_addr + "/user",
+        headers: {
+          Authorization: window.localStorage.getItem("token")
+        },
+        data: {
+          is_online: false
+        }
+      });
+    },
+
+    // logout
+    async logout({ dispatch, commit, state }) {
+      await dispatch("goOffline");
+      commit("logout");
     }
   },
   getters: {
@@ -77,7 +124,7 @@ export default new Vuex.Store({
       return state.dev ? state.dev_url : state.prod_url;
     },
     getChatId(state) {
-      return null == state.socket ? 0 : state.socket.id;
+      return state.chat_id;
     },
     getMsgs(state) {
       return state.messages;

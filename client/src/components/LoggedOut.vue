@@ -8,10 +8,12 @@
 // TODO ADD 5 SEC REDIRECT TO HOME
 export default {
   name: "LoggedOut",
-  beforeCreate() {
-    if (this.$store.getters.loggedOut) this.$router.push("/");
-    window.localStorage.removeItem("token");
-    this.$store.commit("logout");
+  beforeCreate: async function () {
+    if (this.$store.getters.loggedOut) {
+      this.$router.push("/");
+      return;
+    }
+    await this.$store.dispatch("logout");
   }
 };
 </script>
