@@ -23,15 +23,18 @@ export default new Vuex.Store({
   mutations: {
     // setup url
     setup(state) {
-      state.full_addr = `https://${
+      state.full_addr = `${config.http}://${
         config.dev ? config.dev_url : config.prod_url
-      }:${config.port}`;
+        }:${config.port}`;
       state.full_api_addr = `${state.full_addr}${config.api_addr}`;
     },
 
     // connects to socket when loggedin
     login(state) {
-      state.socket = io.connect(state.full_addr);
+      state.socket = io(state.full_addr);
+      state.socket.on("chat", data => {
+        state.messages.push(data);
+      });
       state.login = true;
     },
 
@@ -66,33 +69,6 @@ export default new Vuex.Store({
         method: "post",
         url: state.full_api_addr + "/login",
         data: data
-      });
-    },
-
-    // receieves a chat_id from server and sends back
-    sendChatId({ commit, state }) {
-      state.socket.on("UPDATE_USER_INFO", data => {
-        if ("PING" == data) {
-          console.log("GOT SOME DATA");
-          return axios({
-            method: "put",
-            url: state.full_api_addr + "/user",
-            headers: {
-              Authorization: window.localStorage.getItem("token")
-            },
-            body: {
-              is_online: true,
-              chat_id: state.socket.id
-            }
-          });
-        }
-      });
-    },
-
-    // connects to chat socket
-    connectChat({ commit, state }) {
-      return state.socket.on("chat", data => {
-        state.messages.push(data);
       });
     }
   },

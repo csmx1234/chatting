@@ -40,7 +40,10 @@ export default {
         this.$store.commit("login");
         this.$router.push("/chat");
       } catch (error) {
-        if (error.response) alert(error.response.data.message);
+        if (error.response) {
+          alert(error.response.data.message);
+          this.not_clicked = true;
+        }
       }
     }
   }

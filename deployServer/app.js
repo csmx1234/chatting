@@ -1,4 +1,7 @@
-const https = require('https');
+'use strict';
+
+// const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -10,4 +13,5 @@ const options = {
 
 app.use(express.static(path.resolve(__dirname, './dist')));
 
-https.createServer(options, app).listen(8081);
+// https.createServer(options, app).listen(8081);
+http.createServer(app).listen(8081);
