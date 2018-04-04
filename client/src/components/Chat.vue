@@ -1,7 +1,7 @@
 <template lang="pug">
   div#app
     //- .message-box
-    h1
+    //- h1
       | Welcome my friend! You are now logged in! Your token is {{need_to_delete_token}} Your chat_id is {{getChatId}}
       br
       | Let's chat now!
