@@ -11,13 +11,14 @@ cd ..
 # client
 cd client
 npm i
-npm run build
-./deploy.sh
-cd ..
+tmux new-session -d -s 8 'npm start'
+#npm run build
+#./deploy.sh
+#cd ..
 
 # deployserver
-cd deployServer
-npm i
-tmux kill-session -t 8
-tmux new-session -d -s 8 'node app.js'
-cd ..
+#cd deployServer
+#npm i
+#tmux kill-session -t 8
+#tmux new-session -d -s 8 'node app.js'
+#cd ..

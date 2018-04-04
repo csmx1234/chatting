@@ -36,7 +36,6 @@ export default new Vuex.Store({
       //io.path("/chat");
       state.socket = io(state.full_addr, { forceNew: false });
       state.socket.on("msg", (id, data) => {
-        console.log("something happened");
         state.messages.push(id + " says:");
         state.messages.push(data);
       });
@@ -57,6 +56,13 @@ export default new Vuex.Store({
             }
           });
         }
+      });
+      state.socket.on("reconnect", () => {
+        alert("重新连上了!");
+        state.socket.emit("data", state.socket.id, "PONG");
+      });
+      state.socket.on("reconnect_error", () => {
+        alert("SOME SHIT HAPPENED");
       });
     },
 
@@ -79,6 +85,9 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    async recon({ state }) {
+      state.socket.emit("data", state.socket.id);
+    },
     // authencitate user with current token stored in local storage, return the user information
     async auth({ state }) {
       await axios({
