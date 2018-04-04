@@ -4,7 +4,7 @@ const userModel = require('../models/user');
 
 // socket.io listening
 const chatapp = (io) => {
-	//io.path("/chat");
+    //io.path("/chat");
     io.on('connection', (socket) => {
         let chat_id = "";
         socket.emit('data', 'PING');
@@ -14,13 +14,10 @@ const chatapp = (io) => {
             console.log("msg: " + data);
         });
 
-        //socket.join('room');
-
+        socket.join('room');
         socket.on('newMsg', data => {
             console.log(data);
-            //socket.to('room').emit('msg', chat_id, data);
-			io.emit('msg', chat_id, data);
-            //socket.in('room').emit('msg', chat_id, data);
+            socket.to('room').emit('msg', chat_id, data);
         });
 
         // removes user

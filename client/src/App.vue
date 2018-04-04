@@ -16,7 +16,7 @@
       | Logout
     br
     br
-    img(src="./assets/logo.png")
+    //- img(src="./assets/logo.png")
     router-view
 </template>
 

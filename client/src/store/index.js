@@ -10,6 +10,7 @@ export default new Vuex.Store({
   state: {
     // login state
     login: false,
+    username: "",
 
     // dev state
     full_addr: "",
@@ -32,8 +33,8 @@ export default new Vuex.Store({
     // connects to socket when loggedin
     login(state) {
       state.login = true;
-	  //io.path("/chat");
-      state.socket = io(state.full_addr, {forceNew: false});
+      //io.path("/chat");
+      state.socket = io(state.full_addr, { forceNew: false });
       state.socket.on("msg", (id, data) => {
         console.log("something happened");
         state.messages.push(id + " says:");
@@ -57,7 +58,15 @@ export default new Vuex.Store({
           });
         }
       });
+    },
 
+    setMyMsg(state, myMsg) {
+      state.messages.push("Me:");
+      state.messages.push(myMsg);
+    },
+
+    sendMsg(state, msg) {
+      state.socket.emit("newMsg", msg);
     },
 
     // simply changes the status and resets message

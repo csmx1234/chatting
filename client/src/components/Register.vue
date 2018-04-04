@@ -8,7 +8,7 @@
     | Password 
     input(v-model="password" name="password" placeholder="password")
     br
-    button(v-if='not_clicked' v-on:click="register") Register
+    button(class="btn" v-if='not_clicked' v-on:click="register") Register
 </template>
 
 <script>
