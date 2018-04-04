@@ -9,7 +9,7 @@
       li(v-for='msg in getMsgs')
         | {{ msg }}
 
-    .input-group.input-box
+    .input-box
       button(class="btn btn-default" @click='newPartner') getNew
       input(class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
       button(class="btn btn-default" @click='emitMsg') send
@@ -48,7 +48,8 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
+@import '../../node_modules/bootstrap/scss/bootstrap.scss';
 .message-box {
   position: absolute;
   width: 100%;
@@ -60,6 +61,7 @@ export default {
 }
 
 .input-box {
+  @extend .input-group;
   position: absolute;
   bottom: 0;
 }

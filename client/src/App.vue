@@ -51,7 +51,8 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
+// @import '../node_modules/bootstrap/scss/bootstrap.scss';
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
