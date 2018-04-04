@@ -53,11 +53,12 @@ export default {
 .message-box {
   position: absolute;
   width: 100%;
-  top: 8rem;
+  top: 4rem;
   bottom: 3rem;
   box-sizing: border-box;
   overflow-y: scroll;
   list-style-type: none;
+  padding: 0;
 }
 
 .input-box {
