@@ -49,7 +49,8 @@ const chatapp = (io) => {
                         }
 
                         // and then updates to new chat_id
-                        userModel.findByIdAndUpdate(id, { chat_id: socket.id }, { upsert: true });
+                        console.log(`id: ${id}`);
+                        userModel.findByIdAndUpdate(id, { chat_id: socket.id }, { upsert: true }, (err, user) =>{});
                         
                         // join old room if exist
                         if (null != user.chat_room) {
