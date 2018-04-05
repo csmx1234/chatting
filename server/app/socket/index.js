@@ -35,17 +35,22 @@ const chatapp = (io) => {
                     return;
                 }
 
-                userModel.findByIdAndUpdate(id, { chat_id: socket.id, is_online: true }, { upsert: true }, (err, user) => {
+                userModel.findByIdAndUpdate(id, { is_online: true }, (err, user) => {
                     if (err) throw err;
 
                     if (user) {
                         // tell client user has joined
                         socket.emit("joined");
-                        // kicks out old client
+                        
+                        // kicks out old client if has old chat_id
                         if (null != user.chat_id) {
                             io.to(user.chat_id).emit("kickout", "您的账号已在其他设备上登录");
-                            console.log(`kicked out old ${user.username}`);
+                            console.log(`kicked out old ${user.username} with chat_id ${user.chat_id}`);
                         }
+
+                        // and then updates to new chat_id
+                        userModel.findByIdAndUpdate(id, { chat_id: socket.id }, { upsert: true });
+                        
                         // join old room if exist
                         if (null != user.chat_room) {
                             socket.join(chat_room);
