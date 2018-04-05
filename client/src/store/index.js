@@ -3,6 +3,7 @@ import Vuex from "vuex";
 import io from "socket.io-client";
 import axios from "axios";
 import config from "../config";
+import { router } from "../router";
 
 Vue.use(Vuex);
 
@@ -47,8 +48,8 @@ export default new Vuex.Store({
     logout(state) {
       window.localStorage.removeItem("token");
       state.login = false;
-      state.socket.close();
       state.messages = [];
+      state.socket.close();
     }
   },
   actions: {
@@ -113,31 +114,17 @@ export default new Vuex.Store({
         alert("重新连上了!");
         state.socket.emit("sendToken", window.localStorage.getItem("token"));
       });
-      
+
       state.socket.on("reconnect_error", () => {
         alert("SOME SHIT HAPPENED");
       });
-    },
 
-    // tell server this person going offline
-    async goOffline({ state }) {
-      await axios({
-        method: "put",
-        url: state.full_api_addr + "/user",
-        headers: {
-          Authorization: window.localStorage.getItem("token")
-        },
-        data: {
-          is_online: false,
-          chat_id: null
-        }
+      state.socket.on("kickout", (reason) => {
+        alert(reason);
+        state.socket.close();
+        commit("logout");
+        router.push("/");
       });
-    },
-
-    // logout
-    async logout({ dispatch, commit, state }) {
-      await dispatch("goOffline");
-      commit("logout");
     }
   },
   getters: {

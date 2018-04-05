@@ -13,7 +13,7 @@ export default {
       this.$router.push("/");
       return;
     }
-    await this.$store.dispatch("logout");
+    await this.$store.commit("logout");
   }
 };
 </script>

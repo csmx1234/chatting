@@ -41,6 +41,11 @@ const chatapp = (io) => {
                     if (user) {
                         // tell client user has joined
                         socket.emit("joined");
+                        // kicks out old client
+                        if (null != user.chat_id) {
+                            io.to(user.chat_id).emit("kickout", "您的账号已在其他设备上登录");
+                            console.log(`kicked out old ${user.username}`);
+                        }
                         // join old room if exist
                         if (null != user.chat_room) {
                             socket.join(chat_room);
