@@ -18,7 +18,6 @@ export default new Vuex.Store({
 
     // chat state
     socket: null,
-    chat_id: null,
     messages: []
   },
   mutations: {
@@ -33,37 +32,6 @@ export default new Vuex.Store({
     // connects to socket when loggedin
     login(state) {
       state.login = true;
-      //io.path("/chat");
-      state.socket = io(state.full_addr, { forceNew: false });
-      state.socket.on("msg", (id, data) => {
-        state.messages.push(id + " says:");
-        state.messages.push(data);
-      });
-      state.socket.on("data", data => {
-        // setup chatid with server
-        if (null == state.chat_id) {
-          state.chat_id = state.socket.id
-          state.socket.emit("data", state.socket.id, "PONG");
-          axios({
-            method: "put",
-            url: state.full_api_addr + "/user",
-            headers: {
-              Authorization: window.localStorage.getItem("token")
-            },
-            data: {
-              is_online: true,
-              chat_id: state.chat_id
-            }
-          });
-        }
-      });
-      state.socket.on("reconnect", () => {
-        alert("重新连上了!");
-        state.socket.emit("data", state.socket.id, "PONG");
-      });
-      state.socket.on("reconnect_error", () => {
-        alert("SOME SHIT HAPPENED");
-      });
     },
 
     setMyMsg(state, myMsg) {
@@ -79,17 +47,13 @@ export default new Vuex.Store({
     logout(state) {
       window.localStorage.removeItem("token");
       state.login = false;
-      state.chat_id = null;
       state.socket.close();
       state.messages = [];
     }
   },
   actions: {
-    async recon({ state }) {
-      state.socket.emit("data", state.socket.id);
-    },
     // authencitate user with current token stored in local storage, return the user information
-    async auth({ state }) {
+    async auth({ dispatch, commit, state }) {
       await axios({
         method: "get",
         url: state.full_api_addr + "/user",
@@ -97,6 +61,9 @@ export default new Vuex.Store({
           Authorization: window.localStorage.getItem("token")
         }
       });
+
+      commit('login');
+      dispatch("handleSocket");
     },
 
     // register with give username and password
@@ -110,15 +77,46 @@ export default new Vuex.Store({
     },
 
     // login a user
-    async login({ commit, state }, data) {
+    async login({ dispatch, commit, state }, data) {
+      // sends login to RESTful API, if fails, abort
       let response = await axios({
         method: "post",
         url: state.full_api_addr + "/login",
         data: data
       });
 
+      // saves the token locally, change the status of login
+      state.username = data.username;
       window.localStorage.setItem("token", response.data.token);
       commit('login');
+      dispatch("handleSocket");
+    },
+
+    handleSocket({ commit, state }) {
+      // opens up a socket
+      state.socket = io(state.full_addr, { forceNew: false });
+      state.socket.on("connect", () => {
+        state.socket.emit("sendToken", window.localStorage.getItem("token"));
+      });
+
+      state.socket.on("joined", () => {
+        // handle what to do after joined
+        // alert("successfuly changed online status");
+      });
+
+      state.socket.on("msg", (id, data) => {
+        state.messages.push(id + " says:");
+        state.messages.push(data);
+      });
+
+      state.socket.on("reconnect", () => {
+        alert("重新连上了!");
+        state.socket.emit("sendToken", window.localStorage.getItem("token"));
+      });
+      
+      state.socket.on("reconnect_error", () => {
+        alert("SOME SHIT HAPPENED");
+      });
     },
 
     // tell server this person going offline
@@ -145,9 +143,6 @@ export default new Vuex.Store({
   getters: {
     getUrl(state) {
       return state.dev ? state.dev_url : state.prod_url;
-    },
-    getChatId(state) {
-      return state.chat_id;
     },
     getMsgs(state) {
       return state.messages;

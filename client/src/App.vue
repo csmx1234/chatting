@@ -34,7 +34,6 @@ export default {
     // if user is still in session, reconnects to chat
     try {
       await this.$store.dispatch("auth");
-      this.$store.commit("login");
       this.$router.push("/chat");
     } catch (error) {
       // else redirects to homepage

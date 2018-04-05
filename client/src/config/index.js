@@ -1,5 +1,5 @@
 export default {
-    dev: false,
+    dev: true,
     http: 'http',
     dev_url: "localhost",
     prod_url: "45.32.65.216",

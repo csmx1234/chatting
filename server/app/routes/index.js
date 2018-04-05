@@ -32,8 +32,16 @@ const genToken = (id) => {
 // function to change database
 const updateValue = (req, res, obj) => {
     userModel.findByIdAndUpdate(req.user.id, obj, { upsert: true }, (err, user) => {
-        console.log(`${user.username} updated to ${JSON.stringify(obj)}`);
-        if (err) res.status(503).json({ 'message': `Failed to change ${obj}` });
+        
+        if (err) {
+            console.log(`${user.username} failed to updated to ${JSON.stringify(obj)}`);
+        } 
+        
+        if (user) {
+            console.log(`${user.username} updated to ${JSON.stringify(obj)}`);
+        } else {
+            console.log(`${user.username} doesn't exist`);
+        }
     });
 }
 
@@ -81,8 +89,7 @@ app.route(user_url)
         // set online with chat_id
         if (is_online && chat_id) {
             // TODO check if already online previously (login on other devices)
-            updateValue(req, res, { 'is_online': is_online });
-            updateValue(req, res, { 'chat_id': chat_id });
+            updateValue(req, res, { 'is_online': is_online, 'chat_id': chat_id });
         }
 
         // TODO reengineer the code

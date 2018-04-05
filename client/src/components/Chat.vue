@@ -2,7 +2,7 @@
   div#app
     //- .message-box
     //- h1
-      | Welcome my friend! You are now logged in! Your token is {{need_to_delete_token}} Your chat_id is {{getChatId}}
+      | Welcome my friend! You are now logged in!
       br
       | Let's chat now!
     ul(class='message-box' v-chat-scroll="{always: false}")
@@ -27,7 +27,6 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["getChatId"]),
     getMsgs: function() {
       return this.$store.getters.getMsgs;
     },
