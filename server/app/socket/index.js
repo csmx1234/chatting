@@ -26,7 +26,7 @@ const chatapp = (io) => {
         let username = "";
 
         // link id and chat_id
-        socket.on('sendToken', (token) => {
+        socket.on('sendToken', (token, isRecon) => {
             token = token.split(" ")[1];
 
             decodeToken(token, (err, id) => {
@@ -35,23 +35,19 @@ const chatapp = (io) => {
                     return;
                 }
 
-                userModel.findByIdAndUpdate(id, { is_online: true }, (err, user) => {
+                userModel.findByIdAndUpdate(id, { chat_id: socket.id, is_online: true }, { upsert: true }, (err, user) => {
                     if (err) throw err;
 
                     if (user) {
                         // tell client user has joined
                         socket.emit("joined");
-                        
-                        // kicks out old client if has old chat_id
-                        if (null != user.chat_id) {
+
+                        // kicks out old client if has old chat_id and not reconnecting
+                        if (!isRecon && null != user.chat_id) {
                             io.to(user.chat_id).emit("kickout", "您的账号已在其他设备上登录");
                             console.log(`kicked out old ${user.username} with chat_id ${user.chat_id}`);
                         }
 
-                        // and then updates to new chat_id
-                        console.log(`id: ${id}`);
-                        userModel.findByIdAndUpdate(id, { chat_id: socket.id }, { upsert: true }, (err, user) =>{});
-                        
                         // join old room if exist
                         if (null != user.chat_room) {
                             socket.join(chat_room);

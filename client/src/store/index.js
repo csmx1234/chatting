@@ -112,7 +112,7 @@ export default new Vuex.Store({
 
       state.socket.on("reconnect", () => {
         alert("重新连上了!");
-        state.socket.emit("sendToken", window.localStorage.getItem("token"));
+        state.socket.emit("sendToken", window.localStorage.getItem("token"), true);
       });
 
       state.socket.on("reconnect_error", () => {
