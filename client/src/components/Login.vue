@@ -2,13 +2,11 @@
   div#register
     h1
       | Login
-    div#inputBox
-      | Username 
-      input(v-model="username" name="username" placeholder="username")
-      br
-      | Password 
-      input(v-model="password" name="password" placeholder="password")
-      br
+    .userpass-box
+      | Username
+      input(class="userpass-input" v-model="username" placeholder="Username")
+      | Password
+      input(class="userpass-input" v-model="password" placeholder="Password")
     button(class="btn" v-if='not_clicked' v-on:click="login") Login
 </template>
 

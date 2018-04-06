@@ -61,6 +61,16 @@ export default {
   margin-top: 20px;
 }
 
-#inputBox {
+.userpass-box {
+  @extend .form-group;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  text-align: left;
+  margin: 0;
+}
+
+.userpass-input{
+  @extend .form-control;
+  margin-bottom: 1rem;
 }
 </style>

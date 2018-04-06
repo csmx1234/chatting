@@ -1,10 +1,11 @@
 <template lang="pug">
   div#app
-    //- .message-box
-    //- h1
-      | Welcome my friend! You are now logged in!
+    h3(v-if="isTest")
+      | dev
       br
-      | Let's chat now!
+      | token: {{need_to_delete_token}}
+      br
+      | socket: {{need_to_delete_socket}}
     ul(class='message-box' v-chat-scroll="{always: false}")
       li(v-for='msg in getMsgs')
         | {{ msg }}
@@ -18,6 +19,7 @@
 
 <script>
 import { mapGetters } from "vuex";
+import config from "../config";
 
 export default {
   name: "Chat",
@@ -25,14 +27,6 @@ export default {
     return {
       message: ""
     };
-  },
-  computed: {
-    getMsgs: function() {
-      return this.$store.getters.getMsgs;
-    },
-    need_to_delete_token: function() {
-      return window.localStorage.getItem("token");
-    }
   },
   methods: {
     emitMsg: function() {
@@ -42,6 +36,21 @@ export default {
     },
     newPartner: function() {
       alert("we getting new partner ayyyyy!");
+    }
+  },
+  computed: {
+    getMsgs: function() {
+      return this.$store.getters.getMsgs;
+    },
+
+    isDev: function() {
+      return config.TEST;
+    },
+    need_to_delete_token: function() {
+      return window.localStorage.getItem("token");
+    },
+    need_to_delete_socket: function() {
+      return this.$store.state.chat_id;
     }
   }
 };
@@ -55,7 +64,8 @@ export default {
   top: 4rem;
   bottom: 3rem;
   box-sizing: border-box;
-  overflow-y: scroll;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   list-style-type: none;
   padding: 0;
 }

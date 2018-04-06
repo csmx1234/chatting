@@ -8,10 +8,11 @@ const config = require('../config');
 const decodeToken = (token, callback) => {
     try {
         const data = jwt.decode(token, config.secret);
-        // else just return the id
+        // return the id if no err
         callback(null, data.id);
     } catch (err) {
-        callback(err);
+        // else return err message
+        callback("Error: Token expired");
     }
 };
 
@@ -35,12 +36,16 @@ const chatapp = (io) => {
 
             decodeToken(token, (err, id) => {
                 if (err) {
-                    console.log(err);
+                    console.log(err + " " + socket.id);
+                    io.to(socket.id).emit("kickout", "登录超时，请重新登录");
                     return;
                 }
 
                 userModel.findByIdAndUpdate(id, { chat_id: socket.id, is_online: true }, { upsert: true }, (err, user) => {
-                    if (err) throw err;
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
 
                     if (user) {
                         // tell client user has joined
@@ -79,7 +84,10 @@ const chatapp = (io) => {
         // removes user online status from database
         socket.on('disconnect', (reason) => {
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false }, (err, user) => {
-                if (err) throw err;
+                if (err) {
+                    console.log(err);
+                    return;
+                }
                 if (user) {
                     if (null != user.room)
                         socket.leave(user.room);

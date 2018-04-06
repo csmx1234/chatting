@@ -1,4 +1,5 @@
 export default {
+    TEST: false,
     dev: true,
     http: 'http',
     dev_url: "192.168.0.38",

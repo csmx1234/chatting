@@ -20,6 +20,7 @@ export default new Vuex.Store({
 
     // chat state
     socket: null,
+    chat_id: null,
     messages: []
   },
   mutations: {
@@ -99,6 +100,7 @@ export default new Vuex.Store({
       state.socket = io(state.full_addr, { forceNew: false });
       state.socket.on("connect", () => {
         state.socket.emit("sendToken", window.localStorage.getItem("token"));
+        state.chat_id = state.socket.id;
       });
 
       state.socket.on("joined", () => {
@@ -117,7 +119,7 @@ export default new Vuex.Store({
       });
 
       state.socket.on("reconnecting", () => {
-        alert("断开连接...正在重连...");
+        alert("重新连接中...");
       });
 
       state.socket.on("reconnect_error", () => {
