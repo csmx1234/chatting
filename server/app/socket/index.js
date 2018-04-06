@@ -10,19 +10,27 @@ const decodeToken = (token, callback) => {
         const data = jwt.decode(token, config.secret);
         // else just return the id
         callback(null, data.id);
-    } catch(err) {
+    } catch (err) {
         callback(err);
     }
 };
 
 // socket.io listening
 const chatapp = (io) => {
+    let namespace = null;
+    let ns = io.of(namespace || "/");
+
     io.on('connection', (socket) => {
         console.log(`connected to ${socket.id}`);
         let username = "";
 
         // link id and chat_id
         socket.on('sendToken', (token, isRecon) => {
+            if (null == token) {
+                io.to(socket).emit("kickout", "invalid token");
+                return;
+            }
+
             token = token.split(" ")[1];
 
             decodeToken(token, (err, id) => {
@@ -40,6 +48,8 @@ const chatapp = (io) => {
 
                         // kicks out old client if has old chat_id and not reconnecting
                         if (!isRecon && null != user.chat_id) {
+                            // if (undefined != ns.connected[user.chat_id])
+                            // ns.connected[user.chat_id].disconnect(true);
                             io.to(user.chat_id).emit("kickout", "您的账号已在其他设备上登录");
                             console.log(`kicked out old ${user.username} with chat_id ${user.chat_id}`);
                         }

@@ -2,8 +2,9 @@ import Vue from "vue";
 import Vuex from "vuex";
 import io from "socket.io-client";
 import axios from "axios";
-import config from "../config";
+import moment from "moment";
 import { router } from "../router";
+import config from "../config";
 
 Vue.use(Vuex);
 
@@ -115,14 +116,18 @@ export default new Vuex.Store({
         state.socket.emit("sendToken", window.localStorage.getItem("token"), true);
       });
 
+      state.socket.on("reconnecting", () => {
+        alert("断开连接...正在重连...");
+      });
+
       state.socket.on("reconnect_error", () => {
         alert("SOME SHIT HAPPENED");
       });
 
       state.socket.on("kickout", (reason) => {
-        alert(reason);
         state.socket.close();
         commit("logout");
+        alert(reason);
         router.push("/");
       });
     }

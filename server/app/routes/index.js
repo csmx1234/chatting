@@ -24,8 +24,7 @@ const genToken = (id) => {
 
     return {
         token: 'JWT ' + token,
-        expires: moment.unix(expires).format(),
-        id: id
+        expires: config.token_exp
     }
 };
 
