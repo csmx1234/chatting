@@ -6,17 +6,13 @@ const jwt = require('jwt-simple');
 const config = require('../config');
 
 const decodeToken = (token, callback) => {
-    const cur_time = moment().utc().unix();
-    const data = jwt.decode(token, config.secret);
-
-    // if token is expired
-    if (cur_time > data.exp) {
-        callback("token is expired");
-        return;
+    try {
+        const data = jwt.decode(token, config.secret);
+        // else just return the id
+        callback(null, data.id);
+    } catch(err) {
+        callback(err);
     }
-
-    // else just return the id
-    callback(null, data.id);
 };
 
 // socket.io listening
