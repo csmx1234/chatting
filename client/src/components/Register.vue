@@ -7,11 +7,16 @@
       input(class="userpass-input" v-model="username" placeholder="Username")
       | Password
       input(class="userpass-input" v-model="password" placeholder="Password")
+      | Gender
+      select(class="userpass-input" v-model="gender")
+        option(v-for="option in options" v-bind:value="option.value")
+          | {{ option.text }}
     button(class="btn" v-if='not_clicked' v-on:click="register") Register
 </template>
 
 <script>
 import axios from "axios";
+import config from "../config";
 
 export default {
   name: "Register",
@@ -19,6 +24,11 @@ export default {
     return {
       username: "",
       password: "",
+      gender: "",
+      options: [
+        { text: "男", value: config.MALE },
+        { text: "女", value: config.FEMALE },
+      ],
       not_clicked: true
     };
   },
@@ -31,7 +41,8 @@ export default {
       try {
         await this.$store.dispatch("register", {
           username: this.username,
-          password: this.password
+          password: this.password,
+          gender: this.gender
         });
         this.$router.push("/login");
       } catch (error) {

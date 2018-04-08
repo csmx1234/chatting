@@ -11,9 +11,10 @@
         | {{ msg }}
 
     .input-box
-      button(class="btn btn-default" @click='newPartner') getNew
-      input(class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
-      button(class="btn btn-default" @click='emitMsg') send
+      button(v-if="getNotChattingStatus" class="btn btn-default" @click='newPartner') getNew
+      button(v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
+      input(:disabled="getNotChattingStatus" class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
+      button(:disabled="getNotChattingStatus" class="btn btn-default" @click='emitMsg') send
 
 </template>
 
@@ -35,15 +36,15 @@ export default {
       this.message = "";
     },
     newPartner: function() {
-      alert("we getting new partner ayyyyy!");
+      this.$store.commit("getNewMatch", this.$store.state.RANDOM);
+    },
+    leaveRoom: function() {
+      this.$store.commit("leaveRoom");
     }
   },
   computed: {
-    getMsgs: function() {
-      return this.$store.getters.getMsgs;
-    },
-
-    isDev: function() {
+    ...mapGetters(["getMsgs", "getChattingStatus", "getNotChattingStatus"]),
+    isTest: function() {
       return config.TEST;
     },
     need_to_delete_token: function() {
@@ -57,7 +58,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import '../../node_modules/bootstrap/scss/bootstrap.scss';
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
 .message-box {
   position: absolute;
   width: 100%;

@@ -55,10 +55,11 @@ app.route(user_url)
     })
     // register user
     .post((req, res) => {
-        let username = req.body.username;
-        let password = req.body.password;
+        const username = req.body.username;
+        const password = req.body.password;
+        const gender = req.body.gender;
 
-        if (username && password) {
+        if (username && password && undefined != gender) {
             req.body.reg_date = Date.now();
             new userModel(req.body).save(err => {
                 if (err) return res.status(409).json({ 'message': 'Username already exists' });

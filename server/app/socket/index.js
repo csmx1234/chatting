@@ -4,6 +4,7 @@ const userModel = require('../models/user');
 const moment = require('moment');
 const jwt = require('jwt-simple');
 const config = require('../config');
+const queue = require('../queue');
 
 const decodeToken = (token, callback) => {
     try {
@@ -24,6 +25,8 @@ const chatapp = (io) => {
     io.on('connection', (socket) => {
         console.log(`connected to ${socket.id}`);
         let username = "";
+        let user_id = "";
+        let user_gender = false;
 
         // link id and chat_id
         socket.on('sendToken', (token, isRecon) => {
@@ -61,9 +64,15 @@ const chatapp = (io) => {
 
                         // join old room if exist
                         if (null != user.chat_room) {
-                            socket.join(chat_room);
+                            console.log(`${user.username} rejoined the room ${user.chat_room}`)
+                            socket.join(user.chat_room);
                         }
+
+                        // assign value to local scope
                         username = user.username;
+                        user_id = id;
+                        user_gender = user.gender;
+
                         console.log(`${user.username} has logged in`);
                     } else {
                         console.log(`${user.username} doesn't exist`);
@@ -73,7 +82,39 @@ const chatapp = (io) => {
         });
 
         // TODO join room
-        socket.join('room');
+        socket.on('newMatch', getting_gender => {
+            console.log(`getting new ${config.gendToStr(getting_gender)} match for ${username}`);
+            queue.insertUser(user_id, user_gender, (err) => {
+                // TODO handle err
+            });
+            const room = "room";
+            socket.join(room);
+            userModel.findByIdAndUpdate(user_id, { chat_room: room }, { upsert: true }, (err, user) => {
+                // TODO handle err
+                if (err) console.log(err);
+                if (user) {
+                    socket.emit('newMatch');
+                    console.log(`${user.username} has joined the room \"${room}\"`);
+                }
+                else
+                    console.log("newMatch user not found");
+            });
+        });
+
+        // leaves the room
+        socket.on('leaveRoom', () => {
+            userModel.findByIdAndUpdate(user_id, { chat_room: null }, (err, user) => {
+                // TODO handle err
+                if (err) console.log(err);
+                if (user) {
+                    socket.leave(user.chat_room);
+                    console.log(`${username} is leaving the ${user.chat_room}`);
+                    socket.emit("leftRoom");
+                }
+                else
+                    console.log("leaveRoom user not found");
+            });
+        });
 
         // handles new message
         socket.on('newMsg', data => {

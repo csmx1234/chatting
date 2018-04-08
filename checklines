@@ -1,2 +1,2 @@
 #!/bin/bash
-wc -l ./client/src/*.* ./client/src/*/*.* ./server/app/*/*.*
+wc ./client/src/*.* ./client/src/*/*.* ./server/app/*/*.*

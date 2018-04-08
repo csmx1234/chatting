@@ -12,6 +12,7 @@ export default new Vuex.Store({
   state: {
     // login state
     login: false,
+    chatting: false,
     username: "",
 
     // dev state
@@ -44,6 +45,20 @@ export default new Vuex.Store({
 
     sendMsg(state, msg) {
       state.socket.emit("newMsg", msg);
+    },
+
+    getNewMatch(state, gender) {
+      if (gender == config.MALE) {
+        state.socket.emit("newMatch", config.MALE);
+      } else if (gender == config.FEMALE) {
+        state.socket.emit("newMatch", config.FEMALE);
+      } else {
+        state.socket.emit("newMatch", config.RANDOM);
+      }
+    },
+
+    leaveRoom(state) {
+      state.socket.emit("leaveRoom");
     },
 
     // simply changes the status and resets message
@@ -132,6 +147,14 @@ export default new Vuex.Store({
         alert(reason);
         router.push("/");
       });
+
+      state.socket.on("newMatch", ()=> {
+        state.chatting = true;
+      });
+
+      state.socket.on("leftRoom", ()=>{
+        state.chatting = false;
+      });
     }
   },
   getters: {
@@ -140,6 +163,12 @@ export default new Vuex.Store({
     },
     getMsgs(state) {
       return state.messages;
+    },
+    getChattingStatus(state) {
+      return state.chatting;
+    },
+    getNotChattingStatus(state) {
+      return !state.chatting;
     },
     loggedIn(state) {
       return state.login;
