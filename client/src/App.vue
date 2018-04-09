@@ -3,16 +3,16 @@
     router-link(to="/")
       | Home
     |  
-    router-link(v-if='loggedOut' to="/register")
+    router-link(v-if='!getLoginStatus' to="/register")
       | Register
     | 
-    router-link(v-if='loggedOut' to="/login")
+    router-link(v-if='!getLoginStatus' to="/login")
       | Login
     | 
-    router-link(v-if='loggedIn' to="/chat")
+    router-link(v-if='getLoginStatus' to="/chat")
       | Chat
     | 
-    router-link(v-if='loggedIn' to="/logout")
+    router-link(v-if='getLoginStatus' to="/logout")
       | Logout
     br
     br
@@ -46,7 +46,7 @@ export default {
     // TODO this doesn't work
     // this.$store.dispatch("goOffline");
   },
-  computed: mapGetters(["loggedIn", "loggedOut"])
+  computed: mapGetters(["getLoginStatus"])
 };
 </script>
 

@@ -51,9 +51,6 @@ const chatapp = (io) => {
                     }
 
                     if (user) {
-                        // tell client user has joined
-                        socket.emit("joined");
-
                         // kicks out old client if has old chat_id and not reconnecting
                         if (!isRecon && null != user.chat_id) {
                             // if (undefined != ns.connected[user.chat_id])
@@ -66,12 +63,16 @@ const chatapp = (io) => {
                         if (null != user.chat_room) {
                             console.log(`${user.username} rejoined the room ${user.chat_room}`)
                             socket.join(user.chat_room);
+                            socket.emit('newMatch');
                         }
 
                         // assign value to local scope
                         username = user.username;
                         user_id = id;
                         user_gender = user.gender;
+
+                        // tell client user has joined
+                        socket.emit("joined");
 
                         console.log(`${user.username} has logged in`);
                     } else {

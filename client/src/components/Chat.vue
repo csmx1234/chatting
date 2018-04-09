@@ -11,10 +11,10 @@
         | {{ msg }}
 
     .input-box
-      button(v-if="getNotChattingStatus" class="btn btn-default" @click='newPartner') getNew
-      button(v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
-      input(:disabled="getNotChattingStatus" class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
-      button(:disabled="getNotChattingStatus" class="btn btn-default" @click='emitMsg') send
+      button(:disabled="!getConnectedStatus" v-if="!getChattingStatus" class="btn btn-default" @click='newPartner') getNew
+      button(:disabled="!getConnectedStatus" v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
+      input(:disabled="!getChattingStatus || !getConnectedStatus" class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
+      button(:disabled="!getChattingStatus || !getConnectedStatus" class="btn btn-default" @click='emitMsg') send
 
 </template>
 
@@ -26,7 +26,8 @@ export default {
   name: "Chat",
   data: function() {
     return {
-      message: ""
+      message: "",
+      blah: false
     };
   },
   methods: {
@@ -43,7 +44,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["getMsgs", "getChattingStatus", "getNotChattingStatus"]),
+    ...mapGetters(["getMsgs", "getChattingStatus", "getConnectedStatus"]),
     isTest: function() {
       return config.TEST;
     },

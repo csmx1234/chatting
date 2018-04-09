@@ -12,6 +12,7 @@ export default new Vuex.Store({
   state: {
     // login state
     login: false,
+    connected: false,
     chatting: false,
     username: "",
 
@@ -120,7 +121,7 @@ export default new Vuex.Store({
 
       state.socket.on("joined", () => {
         // handle what to do after joined
-        // alert("successfuly changed online status");
+        state.connected = true;
       });
 
       state.socket.on("msg", (id, data) => {
@@ -135,6 +136,15 @@ export default new Vuex.Store({
 
       state.socket.on("reconnecting", () => {
         alert("重新连接中...");
+        state.connected = false;
+      });
+
+      state.socket.on("disconnecting", (reason) => {
+        state.connected = false;
+      });
+
+      state.socket.on("disconnect", (reason) => {
+        state.connected = false;
       });
 
       state.socket.on("reconnect_error", () => {
@@ -167,14 +177,11 @@ export default new Vuex.Store({
     getChattingStatus(state) {
       return state.chatting;
     },
-    getNotChattingStatus(state) {
-      return !state.chatting;
-    },
-    loggedIn(state) {
+    getLoginStatus(state) {
       return state.login;
     },
-    loggedOut(state) {
-      return !state.login;
+    getConnectedStatus(state) {
+      return state.connected;
     }
   }
 });
