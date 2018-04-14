@@ -17,8 +17,16 @@ const decodeToken = (token, callback) => {
     }
 };
 
+// update user count
+function updateUserCount(io, count) {
+    io.emit("user_count", count);
+    console.log(`updated usercount to ${count}`);
+}
+
 // socket.io listening
 const chatapp = (io) => {
+    let ONLINE_USER = 0;
+
     let namespace = null;
     let ns = io.of(namespace || "/");
 
@@ -28,10 +36,13 @@ const chatapp = (io) => {
         let user_id = "";
         let user_gender = false;
 
+        // sends user count
+        io.to(socket.id).emit("user_count", ONLINE_USER);
+
         // link id and chat_id
-        socket.on('sendToken', (token, newConn) => {
+        socket.on('send_token', (token, newConn) => {
             if (null == token) {
-                io.to(socket).emit("kickout", "invalid token");
+                io.to(socket).emit("kick_out", "invalid token");
                 return;
             }
 
@@ -40,7 +51,7 @@ const chatapp = (io) => {
             decodeToken(token, (err, id) => {
                 if (err) {
                     console.log(err + " " + socket.id);
-                    io.to(socket.id).emit("kickout", "登录超时，请重新登录");
+                    io.to(socket.id).emit("kick_out", "登录超时，请重新登录");
                     return;
                 }
 
@@ -52,19 +63,18 @@ const chatapp = (io) => {
 
                     if (user) {
                         // kicks out old client if has old chat_id and not reconnecting
-                        if (newConn && null != user.chat_id) {
-                            // if (undefined != ns.connected[user.chat_id])
-                            // ns.connected[user.chat_id].disconnect(true);
-                            io.to(user.chat_id).emit("kickout", "您的账号已在其他设备上登录");
+                        if (newConn && null != user.chat_id && undefined != ns.connected[user.chat_id]) {
+                            // console.log(ns.connected[user.chat_id]);
+                            io.to(user.chat_id).emit("kick_out", "您的账号已在其他设备上登录");
                             console.log(`kicked out old ${user.username} with chat_id ${user.chat_id}`);
-
+                            newConn = false;
                         }
 
                         // join old room if exist
                         if (null != user.chat_room) {
                             console.log(`${user.username} rejoined the room ${user.chat_room}`)
                             socket.join(user.chat_room);
-                            socket.emit('newMatch');
+                            socket.emit('new_match');
                         }
 
                         // assign value to new socket (this socket)
@@ -75,6 +85,12 @@ const chatapp = (io) => {
                         // tell client user has joined
                         socket.emit("joined");
 
+                        // update total count
+                        if (newConn) {
+                            ONLINE_USER++;
+                            updateUserCount(io, ONLINE_USER);
+                        }
+
                         console.log(`${user.username} has logged in`);
                     } else {
                         console.log(`${user.username} doesn't exist`);
@@ -84,7 +100,7 @@ const chatapp = (io) => {
         });
 
         // TODO join room
-        socket.on('newMatch', getting_gender => {
+        socket.on('new_match', getting_gender => {
             console.log(`getting new ${config.gendToStr(getting_gender)} match for ${username}`);
             // queue.insertUser(user_id, user_gender, (err) => {
             // TODO handle err
@@ -95,7 +111,7 @@ const chatapp = (io) => {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
-                    socket.emit('newMatch');
+                    socket.emit('new_match');
                     console.log(`${user.username} has joined the room \"${room}\"`);
                 }
                 else
@@ -104,14 +120,14 @@ const chatapp = (io) => {
         });
 
         // leaves the room
-        socket.on('leaveRoom', () => {
+        socket.on('leaving_room', () => {
             userModel.findByIdAndUpdate(user_id, { chat_room: null }, (err, user) => {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
                     socket.leave(user.chat_room);
                     console.log(`${username} is leaving the ${user.chat_room}`);
-                    socket.emit("leftRoom");
+                    socket.emit("left_Room");
                 }
                 else
                     console.log("leaveRoom user not found");
@@ -119,13 +135,13 @@ const chatapp = (io) => {
         });
 
         // handles new message
-        socket.on('newMsg', data => {
-            console.log(data);
-            socket.to('room').emit('msg', username, data);
+        socket.on('new_message', data => {
+            console.log(`${username} says: ${data}`);
+            socket.to('room').emit('message', username, data);
         });
 
         // removes user online status from database
-        socket.on('disconnect', (reason) => {
+        socket.on('disconnect', reason => {
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false }, (err, user) => {
                 if (err) {
                     console.log(err);
@@ -135,6 +151,8 @@ const chatapp = (io) => {
                     if (null != user.room)
                         socket.leave(user.room);
                     console.log(`${user.username} has logged out`);
+                    ONLINE_USER--;
+                    updateUserCount(io, ONLINE_USER);
                 }
             });
         });

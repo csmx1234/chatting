@@ -11,6 +11,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     // login state
+    user_count: 0,
     login: false,
     connected: false,
     chatting: false,
@@ -45,21 +46,21 @@ export default new Vuex.Store({
     },
 
     sendMsg(state, msg) {
-      state.socket.emit("newMsg", msg);
+      state.socket.emit("new_message", msg);
     },
 
     getNewMatch(state, gender) {
       if (gender == config.MALE) {
-        state.socket.emit("newMatch", config.MALE);
+        state.socket.emit("new_match", config.MALE);
       } else if (gender == config.FEMALE) {
-        state.socket.emit("newMatch", config.FEMALE);
+        state.socket.emit("new_match", config.FEMALE);
       } else {
-        state.socket.emit("newMatch", config.RANDOM);
+        state.socket.emit("new_match", config.RANDOM);
       }
     },
 
     leaveRoom(state) {
-      state.socket.emit("leaveRoom");
+      state.socket.emit("leaving_room");
     },
 
     // simply changes the status and resets message
@@ -115,8 +116,12 @@ export default new Vuex.Store({
       // opens up a socket
       state.socket = io(state.full_addr, { forceNew: false });
       state.socket.on("connect", () => {
-        state.socket.emit("sendToken", window.localStorage.getItem("token"), true);
+        state.socket.emit("send_token", window.localStorage.getItem("token"), true);
         state.chat_id = state.socket.id;
+      });
+
+      state.socket.on("user_count", count => {
+        state.user_count = count;
       });
 
       state.socket.on("joined", () => {
@@ -124,14 +129,14 @@ export default new Vuex.Store({
         state.connected = true;
       });
 
-      state.socket.on("msg", (id, data) => {
+      state.socket.on("message", (id, data) => {
         state.messages.push(id + " says:");
         state.messages.push(data);
       });
 
       state.socket.on("reconnect", () => {
         alert("重新连上了!");
-        state.socket.emit("sendToken", window.localStorage.getItem("token"));
+        state.socket.emit("send_token", window.localStorage.getItem("token"));
       });
 
       state.socket.on("reconnecting", () => {
@@ -151,18 +156,18 @@ export default new Vuex.Store({
         alert("SOME SHIT HAPPENED");
       });
 
-      state.socket.on("kickout", (reason) => {
+      state.socket.on("kick_out", (reason) => {
         state.socket.close();
         commit("logout");
         alert(reason);
         router.push("/");
       });
 
-      state.socket.on("newMatch", ()=> {
+      state.socket.on("new_match", ()=> {
         state.chatting = true;
       });
 
-      state.socket.on("leftRoom", ()=>{
+      state.socket.on("left_room", ()=>{
         state.chatting = false;
       });
     }
@@ -182,6 +187,9 @@ export default new Vuex.Store({
     },
     getConnectedStatus(state) {
       return state.connected;
+    },
+    getUserCount(state) {
+      return state.user_count;
     }
   }
 });

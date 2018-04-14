@@ -2,6 +2,8 @@
   div#app
     // header
     .router-links
+      .user-count(v-if='getLoginStatus')
+        | Users: {{ getUserCount }}
       router-link(to="/")
         | Home
       |  
@@ -89,7 +91,7 @@ export default {
     // TODO this doesn't work
     // this.$store.dispatch("goOffline");
   },
-  computed: mapGetters(["getLoginStatus"])
+  computed: mapGetters(["getLoginStatus", "getUserCount"])
 };
 </script>
 
@@ -103,6 +105,12 @@ export default {
   color: #2c3e50;
   margin-top: 20px;
   z-index: 0;
+}
+
+.user-count {
+  position: absolute;
+  top: 0px;
+  right: 10px;
 }
 
 .friend-btn {
