@@ -115,7 +115,7 @@ export default new Vuex.Store({
       // opens up a socket
       state.socket = io(state.full_addr, { forceNew: false });
       state.socket.on("connect", () => {
-        state.socket.emit("sendToken", window.localStorage.getItem("token"));
+        state.socket.emit("sendToken", window.localStorage.getItem("token"), true);
         state.chat_id = state.socket.id;
       });
 
@@ -131,7 +131,7 @@ export default new Vuex.Store({
 
       state.socket.on("reconnect", () => {
         alert("重新连上了!");
-        state.socket.emit("sendToken", window.localStorage.getItem("token"), true);
+        state.socket.emit("sendToken", window.localStorage.getItem("token"));
       });
 
       state.socket.on("reconnecting", () => {

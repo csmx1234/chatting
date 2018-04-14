@@ -7,6 +7,10 @@ const female_queue = [];
 const user_map = {};
 const UserQueue = {};
 
+function checkPartner(user_id, partner_id) {
+    // removes
+}
+
 UserQueue.insertUser = function (user_id, gender, callback) {
     // based on gender move to different queue
     console.log(`inserting a ${config.gendToStr(gender)} with id ${user_id}`);
@@ -18,11 +22,11 @@ UserQueue.insertUser = function (user_id, gender, callback) {
         console.log(female_queue);
     }
     // hashmap to find user lock fast
-    user_map[user_id] = { lock: false, finding: false, found: false };
+    user_map[user_id] = { locked: false, is_finding: false, found: false };
     callback();
 };
 
-UserQueue.findParterner = async function (user_id, gender, callback) {
+UserQueue.findPartner = async function (user_id, gender, callback) {
     callback();
 };
 

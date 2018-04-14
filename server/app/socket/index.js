@@ -29,7 +29,7 @@ const chatapp = (io) => {
         let user_gender = false;
 
         // link id and chat_id
-        socket.on('sendToken', (token, isRecon) => {
+        socket.on('sendToken', (token, newConn) => {
             if (null == token) {
                 io.to(socket).emit("kickout", "invalid token");
                 return;
@@ -52,11 +52,12 @@ const chatapp = (io) => {
 
                     if (user) {
                         // kicks out old client if has old chat_id and not reconnecting
-                        if (!isRecon && null != user.chat_id) {
+                        if (newConn && null != user.chat_id) {
                             // if (undefined != ns.connected[user.chat_id])
                             // ns.connected[user.chat_id].disconnect(true);
                             io.to(user.chat_id).emit("kickout", "您的账号已在其他设备上登录");
                             console.log(`kicked out old ${user.username} with chat_id ${user.chat_id}`);
+
                         }
 
                         // join old room if exist
@@ -66,7 +67,7 @@ const chatapp = (io) => {
                             socket.emit('newMatch');
                         }
 
-                        // assign value to local scope
+                        // assign value to new socket (this socket)
                         username = user.username;
                         user_id = id;
                         user_gender = user.gender;
@@ -85,9 +86,9 @@ const chatapp = (io) => {
         // TODO join room
         socket.on('newMatch', getting_gender => {
             console.log(`getting new ${config.gendToStr(getting_gender)} match for ${username}`);
-            queue.insertUser(user_id, user_gender, (err) => {
-                // TODO handle err
-            });
+            // queue.insertUser(user_id, user_gender, (err) => {
+            // TODO handle err
+            // });
             const room = "room";
             socket.join(room);
             userModel.findByIdAndUpdate(user_id, { chat_room: room }, { upsert: true }, (err, user) => {

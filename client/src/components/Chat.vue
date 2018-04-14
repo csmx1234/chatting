@@ -1,15 +1,19 @@
 <template lang="pug">
   div#app
+    // for testing
     h3(v-if="isTest")
       | dev
       br
       | token: {{need_to_delete_token}}
       br
       | socket: {{need_to_delete_socket}}
+
+    // message list
     ul(class='message-box' v-chat-scroll="{always: false}")
       li(v-for='msg in getMsgs')
         | {{ msg }}
 
+    // input box
     .input-box
       button(:disabled="!getConnectedStatus" v-if="!getChattingStatus" class="btn btn-default" @click='newPartner') getNew
       button(:disabled="!getConnectedStatus" v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
