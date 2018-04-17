@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   gender: {
-    type: Boolean,
+    type: Number,
     default: false,
     required: true
   },

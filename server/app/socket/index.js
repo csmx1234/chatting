@@ -4,9 +4,12 @@ const userModel = require('../models/user');
 const moment = require('moment');
 const jwt = require('jwt-simple');
 const config = require('../config');
-const queue = require('../queue');
+const MALE = config.MALE;
+const FEMALE = config.FEMALE;
+const RANDOM = config.RANDOM;
+// const queue = require('../queue');
 
-const decodeToken = (token, callback) => {
+const decodeToken = function (token, callback) {
     try {
         const data = jwt.decode(token, config.secret);
         // return the id if no err
@@ -17,16 +20,10 @@ const decodeToken = (token, callback) => {
     }
 };
 
-// update user count
-function updateUserCount(io, count) {
-    io.emit("user_count", count);
-    console.log(`updated usercount to ${count}`);
-}
-
 // socket.io listening
-const chatapp = (io) => {
+const chatapp = function (io) {
     let ONLINE_USER = 0;
-
+    let QUEUE_SERVER;
     let namespace = null;
     let ns = io.of(namespace || "/");
 
@@ -34,10 +31,17 @@ const chatapp = (io) => {
         console.log(`connected to ${socket.id}`);
         let username = "";
         let user_id = "";
-        let user_gender = false;
+        let user_gender = MALE;
+        let questions_picked = [{}];
 
         // sends user count
         io.to(socket.id).emit("user_count", ONLINE_USER);
+
+        // establish connection to queue server
+        socket.on('queue_server', () => {
+            QUEUE_SERVER = socket.id;
+            console.log("got queue server");
+        });
 
         // link id and chat_id
         socket.on('send_token', (token, newConn) => {
@@ -81,6 +85,7 @@ const chatapp = (io) => {
                         username = user.username;
                         user_id = id;
                         user_gender = user.gender;
+                        questions_picked = user.questions_picked;
 
                         // tell client user has joined
                         socket.emit("joined");
@@ -102,7 +107,13 @@ const chatapp = (io) => {
         // TODO join room
         socket.on('new_match', getting_gender => {
             console.log(`getting new ${config.gendToStr(getting_gender)} match for ${username}`);
-            // queue.insertUser(user_id, user_gender, (err) => {
+            const data = { user_id: user_id, username: username, chat_id: socket.id, gender_pref: RANDOM, questions_picked: questions_picked };
+            if (null != QUEUE_SERVER) {
+                socket.to(QUEUE_SERVER).emit("insert_user", data, user_gender);
+            } else {
+                console.log("Err: queue server is down");
+            }
+            // queue.insertUser(data, user_gender, (err) => {
             // TODO handle err
             // });
             const room = "room";
@@ -158,5 +169,11 @@ const chatapp = (io) => {
         });
     })
 };
+
+// update user count
+const updateUserCount = function (io, count) {
+    io.emit("user_count", count);
+    console.log(`updated usercount to ${count}`);
+}
 
 module.exports = chatapp;

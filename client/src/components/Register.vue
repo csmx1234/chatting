@@ -24,7 +24,7 @@ export default {
     return {
       username: "",
       password: "",
-      gender: "",
+      gender: config.MALE,
       options: [
         { text: "男", value: config.MALE },
         { text: "女", value: config.FEMALE },

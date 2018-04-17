@@ -5,6 +5,7 @@
   "main": "index.js",
   "author": "Siming Chen",
   "license": "MIT",
+  "gypfile": true,
   "_moduleAliases": {
     "@config": "./config/index.js"
   },
@@ -19,6 +20,7 @@
     "moment": "^2.21.0",
     "mongoose": "^5.0.11",
     "morgan": "^1.9.0",
+    "nan": "^2.10.0",
     "passport": "^0.4.0",
     "passport-jwt": "^3.0.1",
     "path": "^0.12.7",

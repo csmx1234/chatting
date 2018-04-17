@@ -15,7 +15,7 @@ const logout_url = `${config.api_url}/logout`;
 app.use(auth.initialize());
 
 // function to generate a token based on user id
-const genToken = (id) => {
+const genToken = function (id) {
     let expires = moment().utc().add(config.token_exp).unix();
     let token = jwt.encode({
         id: id,
@@ -29,13 +29,13 @@ const genToken = (id) => {
 };
 
 // function to change database
-const updateValue = (req, res, obj) => {
+const updateValue = function (req, res, obj) {
     userModel.findByIdAndUpdate(req.user.id, obj, { upsert: true }, (err, user) => {
-        
+
         if (err) {
             console.log(`${user.username} failed to updated to ${JSON.stringify(obj)}`);
-        } 
-        
+        }
+
         if (user) {
             console.log(`${user.username} updated to ${JSON.stringify(obj)}`);
         } else {
