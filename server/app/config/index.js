@@ -1,4 +1,5 @@
 module.exports = {
+  // enviorment
   TEST: false,
   port: 1234,
   secret: 'lppssb0227$$',
@@ -7,6 +8,8 @@ module.exports = {
   database: 'mongodb://127.0.0.1:27017/serverDB',
   api_url: '/api/v1',
   redisUrl: 'redis://localhos:6379',
+
+  // socket setup
   FEMALE: 0,
   MALE: 1,
   RANDOM: 2,
@@ -18,5 +21,8 @@ module.exports = {
     } else if ( gender == 2 ) {
       return "RANDOM";
     }
-  }
+  },
+  waiting_time: 5000,
+  candidate_count: 5,
+  max_candidate_count: 30
 }

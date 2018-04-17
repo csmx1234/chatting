@@ -44,6 +44,10 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  is_reconnecting: {
+    type: Boolean,
+    default: false
+  },
   gender: {
     type: Number,
     default: false,

@@ -15,6 +15,7 @@ export default new Vuex.Store({
     login: false,
     connected: false,
     chatting: false,
+    finding: false,
     username: "",
 
     // dev state
@@ -50,6 +51,7 @@ export default new Vuex.Store({
     },
 
     getNewMatch(state, gender) {
+      state.finding = true;
       if (gender == config.MALE) {
         state.socket.emit("new_match", config.MALE);
       } else if (gender == config.FEMALE) {
@@ -60,6 +62,7 @@ export default new Vuex.Store({
     },
 
     leaveRoom(state) {
+      state.finding = false;
       state.socket.emit("leaving_room");
     },
 
@@ -163,12 +166,18 @@ export default new Vuex.Store({
         router.push("/");
       });
 
-      state.socket.on("new_match", ()=> {
+      state.socket.on("new_match", () => {
         state.chatting = true;
       });
 
-      state.socket.on("left_room", ()=>{
+      state.socket.on("i_left_room", () => {
         state.chatting = false;
+      });
+
+      state.socket.on("partner_left_room", () => {
+        state.messages.push("Partner has left the room");
+        // TODO handle tell self to leave the room
+        // state.chatting = false;
       });
     }
   },
@@ -190,6 +199,9 @@ export default new Vuex.Store({
     },
     getUserCount(state) {
       return state.user_count;
+    },
+    getFindingStatus(state) {
+      return state.finding;
     }
   }
 });

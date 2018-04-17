@@ -7,7 +7,8 @@ const config = require('../config');
 const MALE = config.MALE;
 const FEMALE = config.FEMALE;
 const RANDOM = config.RANDOM;
-// const queue = require('../queue');
+const queue = require('../queue');
+const hash = require('object-hash');
 
 const decodeToken = function (token, callback) {
     try {
@@ -23,7 +24,6 @@ const decodeToken = function (token, callback) {
 // socket.io listening
 const chatapp = function (io) {
     let ONLINE_USER = 0;
-    let QUEUE_SERVER;
     let namespace = null;
     let ns = io.of(namespace || "/");
 
@@ -32,16 +32,11 @@ const chatapp = function (io) {
         let username = "";
         let user_id = "";
         let user_gender = MALE;
+        let user_room = "";
         let questions_picked = [{}];
 
         // sends user count
         io.to(socket.id).emit("user_count", ONLINE_USER);
-
-        // establish connection to queue server
-        socket.on('queue_server', () => {
-            QUEUE_SERVER = socket.id;
-            console.log("got queue server");
-        });
 
         // link id and chat_id
         socket.on('send_token', (token, newConn) => {
@@ -104,63 +99,96 @@ const chatapp = function (io) {
             });
         });
 
-        // TODO join room
+        // join room
         socket.on('new_match', getting_gender => {
-            console.log(`getting new ${config.gendToStr(getting_gender)} match for ${username}`);
-            const data = { user_id: user_id, username: username, chat_id: socket.id, gender_pref: RANDOM, questions_picked: questions_picked };
-            if (null != QUEUE_SERVER) {
-                socket.to(QUEUE_SERVER).emit("insert_user", data, user_gender);
-            } else {
-                console.log("Err: queue server is down");
-            }
-            // queue.insertUser(data, user_gender, (err) => {
-            // TODO handle err
-            // });
-            const room = "room";
-            socket.join(room);
-            userModel.findByIdAndUpdate(user_id, { chat_room: room }, { upsert: true }, (err, user) => {
-                // TODO handle err
-                if (err) console.log(err);
-                if (user) {
-                    socket.emit('new_match');
-                    console.log(`${user.username} has joined the room \"${room}\"`);
+            // const random_gender = (Math.random() * 10 > 5 ? MALE : FEMALE);
+            const random_gender = (user_gender == MALE ? FEMALE : MALE);
+            console.log(`getting new ${config.gendToStr(getting_gender)}${getting_gender == RANDOM ? ":" + config.gendToStr(random_gender) : ""} match for ${username}`);
+            const data = { user_id: user_id, username: username, chat_id: socket.id, gender: user_gender, gender_pref: random_gender, questions_picked: questions_picked };
+            queue.findPartner(data, (err, my_node, partner_node) => {
+                // cannot find partner within certain waiting time
+                if (err) {
+                    console.log(err);
+                    return;
                 }
-                else
-                    console.log("newMatch user not found");
+
+                // TODO check if both users are online, otherwise start searching again
+                user_room = hash(socket.id + partner_node.chat_id);
+                my_node.new_room = user_room;
+                partner_node.new_room = user_room;
+                socket.join(user_room);
+                ns.connected[partner_node.chat_id].join(user_room);
+                console.log(`${username} and ${partner_node.username} joining room ${user_room}`);
+
+                // updates status for both users
+                userModel.findByIdAndUpdate(user_id, { chat_room: user_room, is_available: false }, { upsert: true }, (err, user) => {
+                    // TODO handle err
+                    if (err) console.log(err);
+                    if (user) {
+                        socket.emit('new_match');
+                        console.log(`${user.username} has joined the room \"${user_room}\"`);
+                    }
+                    else
+                        console.log("newMatch user not found");
+                });
+                userModel.findByIdAndUpdate(partner_node.user_id, { chat_room: user_room, is_available: false }, { upsert: true }, (err, user) => {
+                    // TODO handle err
+                    if (err) console.log(err);
+                    if (user) {
+                        ns.connected[partner_node.chat_id].emit('new_match');
+                        console.log(`${user.username} has joined the room \"${user_room}\"`);
+                    }
+                    else
+                        console.log("newMatch user not found");
+                });
             });
+        });
+
+        // handles new message
+        socket.on('new_message', data => {
+            if ("" == user_room) {
+                userModel.findById(user_id, (err, user) => {
+                    user_room = user.chat_room;
+                    console.log(`${username} says: ${data} to ${user_room}`);
+                    socket.to(user_room).emit('message', username, data);
+                })
+            }
+            else {
+                console.log(`${username} says: ${data} to ${user_room}`);
+                socket.to(user_room).emit('message', username, data);
+            }
         });
 
         // leaves the room
         socket.on('leaving_room', () => {
+            user_room = "";
             userModel.findByIdAndUpdate(user_id, { chat_room: null }, (err, user) => {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
+                    // TODO tell partner left
+                    io.to(socket.id).emit("i_left_room");
+                    socket.to(user.chat_room).emit("partner_left_room");
                     socket.leave(user.chat_room);
                     console.log(`${username} is leaving the ${user.chat_room}`);
-                    socket.emit("left_Room");
                 }
                 else
                     console.log("leaveRoom user not found");
             });
         });
 
-        // handles new message
-        socket.on('new_message', data => {
-            console.log(`${username} says: ${data}`);
-            socket.to('room').emit('message', username, data);
-        });
-
         // removes user online status from database
         socket.on('disconnect', reason => {
-            userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false }, (err, user) => {
+            userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false, is_available: false }, (err, user) => {
                 if (err) {
                     console.log(err);
                     return;
                 }
                 if (user) {
-                    if (null != user.room)
-                        socket.leave(user.room);
+                    // TODO tell partner left
+                    if (null != user.chat_room) {
+                        socket.leave(user.chat_room);
+                    }
                     console.log(`${user.username} has logged out`);
                     ONLINE_USER--;
                     updateUserCount(io, ONLINE_USER);

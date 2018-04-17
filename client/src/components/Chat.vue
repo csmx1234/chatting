@@ -15,8 +15,8 @@
 
     // input box
     .input-box
-      button(:disabled="!getConnectedStatus" v-if="!getChattingStatus" class="btn btn-default" @click='newPartner') getNew
-      button(:disabled="!getConnectedStatus" v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
+      button(:disabled="getFindingStatus || !getConnectedStatus" v-if="!getChattingStatus" class="btn btn-default" @click='newPartner') getNew
+      button(:disabled="!getChattingStatus || !getConnectedStatus" v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
       input(:disabled="!getChattingStatus || !getConnectedStatus" class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
       button(:disabled="!getChattingStatus || !getConnectedStatus" class="btn btn-default" @click='emitMsg') send
 
@@ -48,7 +48,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["getMsgs", "getChattingStatus", "getConnectedStatus"]),
+    ...mapGetters([
+      "getMsgs",
+      "getFindingStatus",
+      "getChattingStatus",
+      "getConnectedStatus"
+    ]),
     isTest: function() {
       return config.TEST;
     },
