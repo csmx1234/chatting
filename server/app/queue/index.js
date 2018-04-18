@@ -1,4 +1,5 @@
 'use strict';
+
 const UserQueue = {};
 const async = require('async');
 const userModel = require('../models/user');

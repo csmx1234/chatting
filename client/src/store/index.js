@@ -62,7 +62,7 @@ export default new Vuex.Store({
     },
 
     leaveRoom(state) {
-      state.finding = false;
+      state.chatting = false;
       state.socket.emit("leaving_room");
     },
 
@@ -167,17 +167,17 @@ export default new Vuex.Store({
       });
 
       state.socket.on("new_match", () => {
+        state.finding = false;
         state.chatting = true;
       });
 
       state.socket.on("i_left_room", () => {
-        state.chatting = false;
       });
 
       state.socket.on("partner_left_room", () => {
+        state.chatting = false;
         state.messages.push("Partner has left the room");
         // TODO handle tell self to leave the room
-        // state.chatting = false;
       });
     }
   },

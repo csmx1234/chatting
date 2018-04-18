@@ -8,6 +8,9 @@
       br
       | socket: {{need_to_delete_socket}}
 
+    h3(v-if="getFindingStatus")
+      | 正在寻找聊天对象
+
     // message list
     ul(class='message-box' v-chat-scroll="{always: false}")
       li(v-for='msg in getMsgs')

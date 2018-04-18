@@ -112,7 +112,18 @@ const chatapp = function (io) {
                     return;
                 }
 
-                // TODO check if both users are online, otherwise start searching again
+                // check if users are online, if not tell self partner has left
+                // TODO keep finding if partner has left during finding
+                if (null == ns.connected[partner_node.chat_id]) {
+                    io.to(socket.id).emit("partner_left_room");
+                    return;
+                }
+                if (null == ns.connected[socket.id]) {
+                    io.to(partner_node.chat_id).emit("partner_left_room");
+                    return;
+                }
+
+                // create user room by hashing both chat_id
                 user_room = hash(socket.id + partner_node.chat_id);
                 my_node.new_room = user_room;
                 partner_node.new_room = user_room;
@@ -185,10 +196,6 @@ const chatapp = function (io) {
                     return;
                 }
                 if (user) {
-                    // TODO tell partner left
-                    if (null != user.chat_room) {
-                        socket.leave(user.chat_room);
-                    }
                     console.log(`${user.username} has logged out`);
                     ONLINE_USER--;
                     updateUserCount(io, ONLINE_USER);
