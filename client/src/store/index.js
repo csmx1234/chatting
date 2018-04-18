@@ -175,9 +175,10 @@ export default new Vuex.Store({
       });
 
       state.socket.on("partner_left_room", () => {
+        state.finding = false;
         state.chatting = false;
+        state.socket.emit("leaving_room");
         state.messages.push("Partner has left the room");
-        // TODO handle tell self to leave the room
       });
     }
   },

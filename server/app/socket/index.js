@@ -72,8 +72,25 @@ const chatapp = function (io) {
                         // join old room if exist
                         if (null != user.chat_room) {
                             console.log(`${user.username} rejoined the room ${user.chat_room}`)
-                            socket.join(user.chat_room);
-                            socket.emit('new_match');
+                            io.in(user.chat_room).clients((err, clients) => {
+                                if (err) {
+                                    console.log(err);
+                                    return;
+                                }
+
+                                // when reconnect, if partner has already left the room, do not rejoin the room
+                                if (0 != clients.length) {
+                                    socket.join(user.chat_room);
+                                    socket.emit('new_match');
+                                }
+
+                                // otherwise removes the old room
+                                else {
+                                    userModel.findByIdAndUpdate(id, { chat_room: null }, (err, user) => {
+                                        console.log(`removing the old room from database for ${user.username}`)
+                                    });
+                                }
+                            })
                         }
 
                         // assign value to new socket (this socket)
@@ -115,10 +132,12 @@ const chatapp = function (io) {
                 // check if users are online, if not tell self partner has left
                 // TODO keep finding if partner has left during finding
                 if (null == ns.connected[partner_node.chat_id]) {
+                    console.log(`lost connection on ${partner_node.username}, quit now`);
                     io.to(socket.id).emit("partner_left_room");
                     return;
                 }
                 if (null == ns.connected[socket.id]) {
+                    console.log(`lost connection on ${username}, quit now`);
                     io.to(partner_node.chat_id).emit("partner_left_room");
                     return;
                 }
