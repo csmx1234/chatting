@@ -85,6 +85,9 @@ const UserSchema = new mongoose.Schema({
   chat_id: {
     type: String
   },
+  partner_id: {
+    type: String
+  },
   chat_room: {
     type: String
   },

@@ -33,6 +33,8 @@ const chatapp = function (io) {
         let user_id = "";
         let user_gender = MALE;
         let user_room = "";
+        let user_node = null;
+        let partner_node = null;
         let questions_picked = [{}];
 
         // sends user count
@@ -122,12 +124,23 @@ const chatapp = function (io) {
             const random_gender = (user_gender == MALE ? FEMALE : MALE);
             console.log(`getting new ${config.gendToStr(getting_gender)}${getting_gender == RANDOM ? ":" + config.gendToStr(random_gender) : ""} match for ${username}`);
             const data = { user_id: user_id, username: username, chat_id: socket.id, gender: user_gender, gender_pref: random_gender, questions_picked: questions_picked };
-            queue.findPartner(data, (err, my_node, partner_node) => {
+
+            // insert user into queue and get a node from it
+            queue.insertUser(data, (node) => {
+                user_node = node;
+                console.log("got user node");
+            });
+
+            // user wait for couple seconds, then start to find partner
+            queue.findPartner(user_node, (err, node) => {
                 // cannot find partner within certain waiting time
                 if (err) {
                     console.log(err);
                     return;
                 }
+
+                partner_node = node;
+                console.log("got partner node");
 
                 // check if users are online, if not tell self partner has left
                 // TODO keep finding if partner has left during finding
@@ -143,8 +156,8 @@ const chatapp = function (io) {
                 }
 
                 // create user room by hashing both chat_id
-                user_room = hash(socket.id + partner_node.chat_id);
-                my_node.new_room = user_room;
+                user_room = hash(socket.id + partner_node.chat_id + Date.now());
+                user_node.new_room = user_room;
                 partner_node.new_room = user_room;
                 socket.join(user_room);
                 ns.connected[partner_node.chat_id].join(user_room);
@@ -196,7 +209,8 @@ const chatapp = function (io) {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
-                    // TODO tell partner left
+                    user_node = null;
+                    partner_node = null;
                     io.to(socket.id).emit("i_left_room");
                     socket.to(user.chat_room).emit("partner_left_room");
                     socket.leave(user.chat_room);
@@ -215,6 +229,13 @@ const chatapp = function (io) {
                     return;
                 }
                 if (user) {
+                    // removes the user from node if in the queue
+                    if (null != user_node) {
+                        queue.removeUser(user_node);
+                    }
+                    if (null != partner_node) {
+                        queue.removeUser(partner_node);
+                    }
                     console.log(`${user.username} has logged out`);
                     ONLINE_USER--;
                     updateUserCount(io, ONLINE_USER);

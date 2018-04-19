@@ -46,10 +46,10 @@ CFLAGS_OBJC_Debug :=
 CFLAGS_OBJCC_Debug :=
 
 INCS_Debug := \
-	-I/Users/csm/.node-gyp/9.8.0/include/node \
-	-I/Users/csm/.node-gyp/9.8.0/src \
-	-I/Users/csm/.node-gyp/9.8.0/deps/uv/include \
-	-I/Users/csm/.node-gyp/9.8.0/deps/v8/include \
+	-I/Users/csm/.node-gyp/9.5.0/include/node \
+	-I/Users/csm/.node-gyp/9.5.0/src \
+	-I/Users/csm/.node-gyp/9.5.0/deps/uv/include \
+	-I/Users/csm/.node-gyp/9.5.0/deps/v8/include \
 	-I$(srcdir)/node_modules/nan
 
 DEFS_Release := \
@@ -93,10 +93,10 @@ CFLAGS_OBJC_Release :=
 CFLAGS_OBJCC_Release :=
 
 INCS_Release := \
-	-I/Users/csm/.node-gyp/9.8.0/include/node \
-	-I/Users/csm/.node-gyp/9.8.0/src \
-	-I/Users/csm/.node-gyp/9.8.0/deps/uv/include \
-	-I/Users/csm/.node-gyp/9.8.0/deps/v8/include \
+	-I/Users/csm/.node-gyp/9.5.0/include/node \
+	-I/Users/csm/.node-gyp/9.5.0/src \
+	-I/Users/csm/.node-gyp/9.5.0/deps/uv/include \
+	-I/Users/csm/.node-gyp/9.5.0/deps/v8/include \
 	-I$(srcdir)/node_modules/nan
 
 OBJS := \

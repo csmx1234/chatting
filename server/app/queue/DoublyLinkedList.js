@@ -60,6 +60,10 @@ DoublyLinkedList.prototype.getNode = function (index) {
 
 // delete a node given a node object
 DoublyLinkedList.prototype.remove = function (node) {
+    if (null == node.prev || null == node.next) {
+        console.log("Err: node has already been removed");
+        return;
+    }
     node.prev.next = node.next;
     node.next.prev = node.prev;
     this.count--;

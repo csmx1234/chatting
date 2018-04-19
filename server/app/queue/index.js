@@ -11,19 +11,22 @@ const male_queue = new DoublyLinkedList();
 const female_queue = new DoublyLinkedList();
 // const addon = require('../../build/Release/addon');
 
-UserQueue.findPartner = function (data, callback) {
-    // select gender queue, make a new node, push to queue, print queue
+// select gender queue, make a new node, push to queue, print queue, and return the node object
+UserQueue.insertUser = function (data, callback) {
     const my_queue = (data.gender == MALE ? male_queue : female_queue);
     console.log(`my_queue is ${my_queue === male_queue ? "male_queue" : "female_queue"}`)
-    const my_queue_obj = my_queue.enqueue(data);
+    callback(my_queue.enqueue(data));
     my_queue.print();
+}
 
+UserQueue.findPartner = function (my_queue_obj, callback) {
+    const my_queue = (my_queue_obj.gender == MALE ? male_queue : female_queue);
     // wait for several seconds for other candidates to join
     setTimeout(() => {
-        console.log(`${data.username} starts to find candidates`);
+        console.log(`${my_queue_obj.username} starts to find candidates`);
         // if has already been picked up by other people, just leave
         if (null != my_queue_obj.new_room) {
-            callback(`Err: ${data.username} has been taken`);
+            callback(`Err: ${my_queue_obj.username} has been taken`);
             return;
         }
 
@@ -39,7 +42,7 @@ UserQueue.findPartner = function (data, callback) {
 
             // loop through candidates from old to new in the gender queue
             while (null != itr && tried_candidates != config.candidate_count && searched_candidates != config.max_candidate_count) {
-                console.log(`${data.username} is visiting ${itr.username}`);
+                console.log(`${my_queue_obj.username} is visiting ${itr.username}`);
                 if (itr.user_id == my_queue_obj.user_id || my_queue_obj.gender != itr.gender_pref || null != itr.new_room) {
                     itr = itr.next;
                     console.log("passed");
@@ -65,7 +68,7 @@ UserQueue.findPartner = function (data, callback) {
 
             // if found candidate, remove both nodes from queue, send nodes back to callback to handle
             else {
-                callback(null, my_queue_obj, most_optimal);
+                callback(null, most_optimal);
                 my_queue.remove(my_queue_obj);
                 searching_queue.remove(most_optimal);
             }
@@ -73,8 +76,10 @@ UserQueue.findPartner = function (data, callback) {
     }, config.waiting_time);
 };
 
-UserQueue.removeUser = function (user_id, gender, callback) {
-    callback();
+UserQueue.removeUser = function (my_queue_obj) {
+    console.log(`removing ${my_queue_obj.username}`);
+    const my_queue = (my_queue_obj.gender == MALE ? male_queue : female_queue);
+    my_queue.remove(my_queue_obj);
 };
 
 module.exports = UserQueue;
