@@ -70,6 +70,10 @@ export default new Vuex.Store({
     logout(state) {
       window.localStorage.removeItem("token");
       state.login = false;
+      state.connected = false;
+      state.chatting = false;
+      state.finding = false;
+      state.username = "";
       state.messages = [];
       state.socket.close();
     }
@@ -140,6 +144,8 @@ export default new Vuex.Store({
       state.socket.on("reconnect", () => {
         alert("重新连上了!");
         state.socket.emit("send_token", window.localStorage.getItem("token"));
+        if (state.finding)
+          state.finding = false;
       });
 
       state.socket.on("reconnecting", () => {

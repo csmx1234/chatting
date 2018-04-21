@@ -223,19 +223,20 @@ const chatapp = function (io) {
 
         // removes user online status from database
         socket.on('disconnect', reason => {
+            // removes the user from node if in the queue
+            if (null != user_node) {
+                queue.removeUser(user_node);
+            }
+            if (null != partner_node) {
+                queue.removeUser(partner_node);
+            }
+
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false, is_available: false }, (err, user) => {
                 if (err) {
                     console.log(err);
                     return;
                 }
                 if (user) {
-                    // removes the user from node if in the queue
-                    if (null != user_node) {
-                        queue.removeUser(user_node);
-                    }
-                    if (null != partner_node) {
-                        queue.removeUser(partner_node);
-                    }
                     console.log(`${user.username} has logged out`);
                     ONLINE_USER--;
                     updateUserCount(io, ONLINE_USER);
