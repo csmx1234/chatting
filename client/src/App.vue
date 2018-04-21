@@ -25,8 +25,9 @@
       button(v-if='getLoginStatus' @click="toggleFriendList" type="button" id="sidebarCollapse" class="friend-btn")
           i(class="glyphicon glyphicon-align-right")
           | Friends
-      br
-      br
+
+      .partner-info(v-if='getLoginStatus && getChattingStatus')
+        | Gender: {{ getPartnerGender }}
 
     // logo
     //- img(src="./assets/logo.png")
@@ -91,7 +92,7 @@ export default {
     // TODO this doesn't work
     // this.$store.dispatch("goOffline");
   },
-  computed: mapGetters(["getLoginStatus", "getUserCount"])
+  computed: mapGetters(["getLoginStatus", "getChattingStatus", "getUserCount", "getPartnerGender"])
 };
 </script>
 

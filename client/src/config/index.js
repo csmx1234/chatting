@@ -8,5 +8,14 @@ export default {
     api_addr: "/api/v1",
     FEMALE: 0,
     MALE: 1,
-    RANDOM: 2
+    RANDOM: 2,
+    gendToStr: function (gender) {
+        if (gender == 0) {
+            return "FEMALE";
+        } else if (gender == 1) {
+            return "MALE";
+        } else if (gender == 2) {
+            return "RANDOM";
+        }
+    },
 };
