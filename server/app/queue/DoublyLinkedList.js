@@ -46,18 +46,18 @@ DoublyLinkedList.prototype.enqueue = function (data) {
 };
 
 // pops a node from head
-DoublyLinkedList.prototype.dequeue = function () {
-    if (0 == this.count) {
-        console.log("Err: empty queue");
-        return;
-    }
+// DoublyLinkedList.prototype.dequeue = function () {
+//     if (0 == this.count) {
+//         console.log("Err: empty queue");
+//         return;
+//     }
 
-    const node = this.head.next;
-    node.prev.next = node.next;
-    node.next.prev = node.prev;
-    this.count--;
-    return node;
-}
+//     const node = this.head.next;
+//     node.prev.next = node.next;
+//     node.next.prev = node.prev;
+//     this.count--;
+//     return node;
+// }
 
 // get a node in specific index
 DoublyLinkedList.prototype.getNode = function (index) {
@@ -73,12 +73,14 @@ DoublyLinkedList.prototype.getNode = function (index) {
 
 // delete a node given a node object
 DoublyLinkedList.prototype.remove = function (node) {
-    if (null == node.prev || null == node.next) {
+    if (null == node || null == node.prev || null == node.next) {
         console.log("Err: node has already been removed");
         return;
     }
     node.prev.next = node.next;
     node.next.prev = node.prev;
+    node.prev = null;
+    node.next = null;
     this.count--;
 }
 

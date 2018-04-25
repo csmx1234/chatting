@@ -26,30 +26,30 @@ UserQueue.insertUser = function (data, callback) {
 
 UserQueue.findPartner = function (my_queue_obj, callback) {
     const my_queue = (my_queue_obj.gender == MALE ? male_queue : female_queue);
-    let searching_queue = (my_queue_obj.gender_pref == MALE ? male_queue : female_queue);
-    console.log(`searching_queue is ${searching_queue === male_queue ? "male_queue" : "female_queue"}`)
-    console.log(`${config.gendToStr(my_queue_obj.gender_pref)} searching queue has count of: ${searching_queue.count}`);
-
-    // if the searching queue is empty, see if user is vip, if not, automatically switch gender preference
-    if (0 == searching_queue.count || (1 == searching_queue.count && my_queue_obj.gender == my_queue_obj.gender_pref)) {
-        if (my_queue_obj.is_vip) {
-            callback("Err: opposite gender queue is empty");
-            return;
-        } else {
-            my_queue_obj.gender_pref = !my_queue_obj.gender_pref;
-            searching_queue = (my_queue_obj.gender_pref == MALE ? male_queue : female_queue);
-
-            console.log(`${config.gendToStr(my_queue_obj.gender_pref)} searching queue has count of: ${searching_queue.count}`);
-            // if the queue is still empty, it means there's no one online
-            if (0 == searching_queue.count || (1 == searching_queue.count && my_queue_obj.gender == my_queue_obj.gender_pref)) {
-                callback("Err: empty queues");
-                return;
-            }
-        }
-    }
 
     // wait for several seconds for other candidates to join
     setTimeout(() => {
+        let searching_queue = (my_queue_obj.gender_pref == MALE ? male_queue : female_queue);
+        console.log(`searching_queue is ${searching_queue === male_queue ? "male_queue" : "female_queue"} and i am ${my_queue_obj.username}`)
+        console.log(`${config.gendToStr(my_queue_obj.gender_pref)} searching queue has count of: ${searching_queue.count}`);
+        // if the searching queue is empty, see if user is vip, if not, automatically switch gender preference
+        if (0 == searching_queue.count || (1 == searching_queue.count && my_queue_obj.gender == my_queue_obj.gender_pref)) {
+            if (my_queue_obj.is_vip) {
+                callback("Err: opposite gender queue is empty");
+                return;
+            } else {
+                my_queue_obj.gender_pref = (my_queue_obj.gender_pref == MALE ? FEMALE : MALE);
+                searching_queue = (my_queue_obj.gender_pref == MALE ? male_queue : female_queue);
+
+                console.log(`${config.gendToStr(my_queue_obj.gender_pref)} searching queue has count of: ${searching_queue.count}`);
+                // if the queue is still empty, it means there's no one online
+                if (0 == searching_queue.count || (1 == searching_queue.count && my_queue_obj.gender == my_queue_obj.gender_pref)) {
+                    callback("Err: empty queues");
+                    return;
+                }
+            }
+        }
+
         let itr = searching_queue.getNode(0);
         let most_optimal = null;
         let tried_candidates = 0;
@@ -67,6 +67,7 @@ UserQueue.findPartner = function (my_queue_obj, callback) {
         else {
             // loop through candidates from old to new in the gender queue
             while (searching_queue.tail != itr && tried_candidates != config.candidate_count && searched_candidates != config.max_candidate_count) {
+                searching_queue.print();
                 console.log(`${my_queue_obj.username} is visiting ${itr.username}`);
                 if (itr.user_id == my_queue_obj.user_id || null != itr.new_room) {
                     itr = itr.next;

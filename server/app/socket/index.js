@@ -7,7 +7,7 @@ const config = require('../config');
 const MALE = config.MALE;
 const FEMALE = config.FEMALE;
 const RANDOM = config.RANDOM;
-const queue = require('../queue');
+const Queue = require('../queue');
 const hash = require('object-hash');
 
 const decodeToken = function (token, callback) {
@@ -153,13 +153,13 @@ const chatapp = function (io) {
             const data = { user_id: user_id, username: username, chat_id: socket.id, is_vip: user_is_vip, gender: user_gender, gender_pref: random_gender, questions_picked: questions_picked };
 
             // insert user into queue and get a node from it
-            queue.insertUser(data, (node) => {
+            Queue.insertUser(data, (node) => {
                 user_node = node;
                 console.log("got user node");
             });
 
             // user wait for couple seconds, then start to find partner
-            queue.findPartner(user_node, (err, node) => {
+            Queue.findPartner(user_node, (err, node) => {
                 // cannot find partner within certain waiting time
                 if (err) {
                     console.log(err);
@@ -240,11 +240,13 @@ const chatapp = function (io) {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
-                    user_node = null;
-                    partner_node = null;
                     io.to(socket.id).emit("i_left_room");
+                    ns.connected[socket.id].user_is_available = false;
+                    userModel.findByIdAndUpdate(user_id, { is_available: false }, { upsert: true }).exec();
                     socket.to(user.chat_room).emit("partner_left_room");
                     socket.leave(user.chat_room);
+                    user_node = null;
+                    partner_node = null;
                     console.log(`${username} is leaving the ${user.chat_room}`);
                 }
                 else
@@ -256,10 +258,10 @@ const chatapp = function (io) {
         socket.on('disconnect', reason => {
             // removes the user from node if in the queue
             if (null != user_node) {
-                queue.removeUser(user_node);
+                Queue.removeUser(user_node);
             }
             if (null != partner_node) {
-                queue.removeUser(partner_node);
+                Queue.removeUser(partner_node);
             }
 
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false, is_available: false }, (err, user) => {
