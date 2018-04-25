@@ -25,7 +25,7 @@ export default new Vuex.Store({
     // chat state
     socket: null,
     chat_id: null,
-    partner_gender: 0,
+    partner: {},
     messages: []
   },
   mutations: {
@@ -52,6 +52,8 @@ export default new Vuex.Store({
     },
 
     getNewMatch(state, gender) {
+      state.partner = {};
+      state.messages = [];
       state.finding = true;
       if (gender == config.MALE) {
         state.socket.emit("new_match", config.MALE);
@@ -173,10 +175,10 @@ export default new Vuex.Store({
         router.push("/");
       });
 
-      state.socket.on("new_match", (partner_gender) => {
+      state.socket.on("new_match", (partner) => {
         state.finding = false;
         state.chatting = true;
-        state.partner_gender = partner_gender;
+        state.partner = partner;
       });
 
       state.socket.on("i_left_room", () => {
@@ -212,8 +214,8 @@ export default new Vuex.Store({
     getFindingStatus(state) {
       return state.finding;
     },
-    getPartnerGender(state) {
-      return config.gendToStr(state.partner_gender);
+    getPartner(state) {
+      return state.partner;
     }
   }
 });

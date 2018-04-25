@@ -1,6 +1,6 @@
 module.exports = {
   // enviorment
-  TEST: false,
+  dev: true,
   port: 1234,
   secret: 'lppssb0227$$',
   session: { session: false },

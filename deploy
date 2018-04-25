@@ -1,5 +1,6 @@
 #!/bin/bash
 vim client/src/config/index.js 
+vim server/app/config/index.js
 
 # server
 cd server

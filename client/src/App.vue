@@ -27,7 +27,9 @@
           | Friends
 
       .partner-info(v-if='getLoginStatus && getChattingStatus')
-        | Gender: {{ getPartnerGender }}
+        | Gender: {{ getPartner.gender }} Vip: {{ getPartner.is_vip }}
+      br
+      br
 
     // logo
     //- img(src="./assets/logo.png")
@@ -92,7 +94,7 @@ export default {
     // TODO this doesn't work
     // this.$store.dispatch("goOffline");
   },
-  computed: mapGetters(["getLoginStatus", "getChattingStatus", "getUserCount", "getPartnerGender"])
+  computed: mapGetters(["getLoginStatus", "getChattingStatus", "getUserCount", "getPartner"])
 };
 </script>
 

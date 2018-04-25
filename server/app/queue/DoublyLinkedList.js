@@ -1,7 +1,12 @@
-function Node({ user_id, username, chat_id, gender, gender_pref, questions_picked }) {
+'use strict';
+
+const config = require("../config");
+
+function Node({ user_id, username, chat_id, is_vip, gender, gender_pref, questions_picked }) {
     this.user_id = user_id;
     this.username = username;
     this.chat_id = chat_id;
+    this.is_vip = is_vip;
     this.gender = gender;
     this.gender_pref = gender_pref;
     this.questions_picked = questions_picked;
@@ -9,6 +14,14 @@ function Node({ user_id, username, chat_id, gender, gender_pref, questions_picke
     // this.partner = null;
     this.previous = null;
     this.next = null;
+}
+
+Node.prototype.toJSON = function () {
+    return {
+        is_vip: this.is_vip,
+        gender: config.gendToStr(this.gender),
+        questions_picked: this.questions_picked
+    };
 }
 
 const DoublyLinkedList = function () {

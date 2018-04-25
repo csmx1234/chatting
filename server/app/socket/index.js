@@ -31,11 +31,13 @@ const chatapp = function (io) {
         console.log(`connected to ${socket.id}`);
         let username = "";
         let user_id = "";
+        let user_is_vip = false;
         let user_gender = MALE;
         let user_room = "";
         let user_node = null;
         let partner_node = null;
         let questions_picked = [{}];
+        ns.connected[socket.id].user_is_available = false;
 
         // sends user count
         io.to(socket.id).emit("user_count", ONLINE_USER);
@@ -73,14 +75,14 @@ const chatapp = function (io) {
 
                         // join old room if exist and partner id exist as well
                         if (null != user.chat_room && null != user.partner_id) {
-                            console.log(`${user.username} rejoined the room ${user.chat_room}`)
+                            console.log(`${user.username} rejoining the room ${user.chat_room}`)
                             io.in(user.chat_room).clients((err, clients) => {
                                 if (err) {
                                     console.log(err);
                                     return;
                                 }
 
-                                // when reconnect, if partner has already left the room, do not rejoin the room
+                                // when reconnect, rejoin the room if still exist
                                 if (0 != clients.length) {
                                     userModel.findById(user.partner_id, (err, partner) => {
                                         if (err) {
@@ -90,7 +92,8 @@ const chatapp = function (io) {
 
                                         if (partner) {
                                             socket.join(user.chat_room);
-                                            socket.emit('new_match', partner.gender);
+                                            const partner_JSON = { is_vip: partner.is_vip, gender: config.gendToStr(partner.gender), questions_picked: partner.questions_picked }
+                                            socket.emit('new_match', partner_JSON);
                                         } else {
                                             // TODO
                                             // console.log()
@@ -102,6 +105,7 @@ const chatapp = function (io) {
                                 else {
                                     userModel.findByIdAndUpdate(id, { chat_room: null }, (err, user) => {
                                         console.log(`removing the old room from database for ${user.username}`)
+                                        io.to(socket.id).emit("partner_left_room");
                                     });
                                 }
                             })
@@ -110,6 +114,7 @@ const chatapp = function (io) {
                         // assign value to new socket (this socket)
                         username = user.username;
                         user_id = id;
+                        user_is_vip = user.is_vip;
                         user_gender = user.gender;
                         questions_picked = user.questions_picked;
 
@@ -132,10 +137,20 @@ const chatapp = function (io) {
 
         // join room
         socket.on('new_match', getting_gender => {
-            const random_gender = (Math.random() * 10 > 5 ? MALE : FEMALE);
+            // if user is already in the queue, do not add him back into the queue
+            if (ns.connected[socket.id].user_is_available) {
+                console.log(`${username} is already in queue`);
+                return;
+            }
+
+            // otherwise updates user's availability
+            ns.connected[socket.id].user_is_available = true;
+            userModel.findByIdAndUpdate(user_id, { is_available: true }, { upsert: true }).exec();
+
+            const random_gender = user_is_vip ? (user_gender == MALE ? FEMALE : MALE) : (Math.random() * 10 > 5 ? MALE : FEMALE);
             // const random_gender = (user_gender == MALE ? FEMALE : MALE);
             console.log(`getting new ${config.gendToStr(getting_gender)}${getting_gender == RANDOM ? ":" + config.gendToStr(random_gender) : ""} match for ${username}`);
-            const data = { user_id: user_id, username: username, chat_id: socket.id, gender: user_gender, gender_pref: random_gender, questions_picked: questions_picked };
+            const data = { user_id: user_id, username: username, chat_id: socket.id, is_vip: user_is_vip, gender: user_gender, gender_pref: random_gender, questions_picked: questions_picked };
 
             // insert user into queue and get a node from it
             queue.insertUser(data, (node) => {
@@ -167,7 +182,7 @@ const chatapp = function (io) {
                     return;
                 }
 
-                // create user room by hashing both chat_id
+                // create user room by hashing both chat_id and timestamp
                 user_room = hash(socket.id + partner_node.chat_id + Date.now());
                 user_node.new_room = user_room;
                 partner_node.new_room = user_room;
@@ -181,7 +196,9 @@ const chatapp = function (io) {
                     if (err) console.log(err);
                     if (user) {
                         // TODO send more info
-                        socket.emit('new_match', partner_node.gender);
+                        console.log("sending stuff");
+                        ns.connected[socket.id].user_is_available = false;
+                        socket.emit('new_match', partner_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
                     else
@@ -191,7 +208,8 @@ const chatapp = function (io) {
                     // TODO handle err
                     if (err) console.log(err);
                     if (user) {
-                        ns.connected[partner_node.chat_id].emit('new_match', user_node.gender);
+                        ns.connected[partner_node.chat_id].user_is_available = false;
+                        ns.connected[partner_node.chat_id].emit('new_match', user_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
                     else

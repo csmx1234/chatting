@@ -42,8 +42,8 @@ mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB conneciton error"));
 
-// test
-if (config.TEST) setup();
+// setup server first
+if (!config.dev) setup();
 
 server.listen(port);
 
