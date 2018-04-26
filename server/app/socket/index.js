@@ -235,14 +235,14 @@ const chatapp = function (io) {
 
         // leaves the room
         socket.on('leaving_room', () => {
+            socket.leave(user_room);
+            console.log(`${username} is leaving the ${user_room}`);
+            io.to(socket.id).emit("i_left_room");
+            socket.to(user_room).emit("partner_left_room");
             user_room = "";
             user_node = null;
             partner_node = null;
             ns.connected[socket.id].user_is_available = false;
-            socket.leave(user.chat_room);
-            console.log(`${username} is leaving the ${user.chat_room}`);
-            io.to(socket.id).emit("i_left_room");
-            socket.to(user.chat_room).emit("partner_left_room");
 
             // THIS IS ASYNC
             // TO THINK ABOUT: MAKE USER FIND NEW PARTNER AFTER DATABASE SYNC
