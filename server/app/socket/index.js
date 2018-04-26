@@ -236,18 +236,21 @@ const chatapp = function (io) {
         // leaves the room
         socket.on('leaving_room', () => {
             user_room = "";
-            userModel.findByIdAndUpdate(user_id, { chat_room: null }, (err, user) => {
+            user_node = null;
+            partner_node = null;
+            ns.connected[socket.id].user_is_available = false;
+            socket.leave(user.chat_room);
+            console.log(`${username} is leaving the ${user.chat_room}`);
+            io.to(socket.id).emit("i_left_room");
+            socket.to(user.chat_room).emit("partner_left_room");
+
+            // THIS IS ASYNC
+            // TO THINK ABOUT: MAKE USER FIND NEW PARTNER AFTER DATABASE SYNC
+            userModel.findByIdAndUpdate(user_id, { chat_room: null, is_available: false }, (err, user) => {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
-                    io.to(socket.id).emit("i_left_room");
-                    ns.connected[socket.id].user_is_available = false;
-                    userModel.findByIdAndUpdate(user_id, { is_available: false }, { upsert: true }).exec();
-                    socket.to(user.chat_room).emit("partner_left_room");
-                    socket.leave(user.chat_room);
-                    user_node = null;
-                    partner_node = null;
-                    console.log(`${username} is leaving the ${user.chat_room}`);
+                    console.log(`${username} has left the ${user.chat_room}`);
                 }
                 else
                     console.log("leaveRoom user not found");
@@ -259,9 +262,6 @@ const chatapp = function (io) {
             // removes the user from node if in the queue
             if (null != user_node) {
                 Queue.removeUser(user_node);
-            }
-            if (null != partner_node) {
-                Queue.removeUser(partner_node);
             }
 
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false, is_available: false }, (err, user) => {
