@@ -75,42 +75,48 @@ const chatapp = function (io) {
                             newConn = false;
                         }
 
-                        // join old room if exist and partner id exist as well
+                        // join old room if room exists and partner id exist as well
                         if (null != user.chat_room && null != user.partner_id) {
-                            console.log(`${user.username} rejoining the room ${user.chat_room}`)
-                            io.in(user.chat_room).clients((err, clients) => {
+                            console.log(`${user.username} rejoining the room ${user.chat_room}`);
+                            //io.in(user.chat_room).clients((err, clients) => {
+                            //if (err) {
+                            //console.log(err);
+                            //return;
+                            //}
+
+                            // when reconnect, rejoin the room if still exist
+                            //if (0 != clients.length) {
+                            userModel.findById(user.partner_id, (err, partner) => {
                                 if (err) {
                                     console.log(err);
-                                    return;
+                                    return
                                 }
 
-                                // when reconnect, rejoin the room if still exist
-                                if (0 != clients.length) {
-                                    userModel.findById(user.partner_id, (err, partner) => {
-                                        if (err) {
-                                            console.log(err);
-                                            return
-                                        }
-
-                                        if (partner) {
-                                            socket.join(user.chat_room);
-                                            const partner_JSON = { is_vip: partner.is_vip, gender: config.gendToStr(partner.gender), questions_picked: partner.questions_picked }
-                                            socket.emit('new_match', partner_JSON);
-                                        } else {
-                                            // TODO
-                                            // console.log()
-                                        }
-                                    });
+                                // if old room still exists
+                                if (partner.chat_room == user.chat_room) {
+                                    socket.join(user.chat_room);
+                                    const partner_JSON = { is_vip: partner.is_vip, gender: config.gendToStr(partner.gender), questions_picked: partner.questions_picked }
+                                    socket.emit('new_match', partner_JSON);
+                                    console.log(`${user.username} rejoined the room ${user.chat_room}`);
                                 }
 
                                 // otherwise removes the old room
                                 else {
-                                    userModel.findByIdAndUpdate(id, { chat_room: null }, (err, user) => {
-                                        console.log(`removing the old room from database for ${user.username}`)
+                                    userModel.findByIdAndUpdate(id, { chat_room: null, partner_id: null }, (err, user) => {
+                                        console.log(`removing the old room from database for ${user.username}`);
                                         io.to(socket.id).emit("partner_left_room");
                                     });
                                 }
-                            })
+                            });
+                            //}
+
+                            //else {
+                            //userModel.findByIdAndUpdate(id, { chat_room: null }, (err, user) => {
+                            //console.log(`removing the old room from database for ${user.username}`)
+                            //io.to(socket.id).emit("partner_left_room");
+                            //});
+                            //}
+                            //})
                         }
 
                         // assign value to new socket (this socket)
@@ -186,7 +192,7 @@ const chatapp = function (io) {
                     return;
                 }
 
-                if ( null == ns.connected[socket.id]) {
+                if (null == ns.connected[socket.id]) {
                     console.log(`lost connection on ${username}, quit now`);
                     socket.to(partner_id).emit("partner_left_room");
                     return;
@@ -265,7 +271,7 @@ const chatapp = function (io) {
 
             // THIS IS ASYNC
             // TO THINK ABOUT: MAKE USER FIND NEW PARTNER AFTER DATABASE SYNC
-            userModel.findByIdAndUpdate(user_id, { chat_room: null, is_available: false }, (err, user) => {
+            userModel.findByIdAndUpdate(user_id, { chat_room: null, partner_id: null, is_available: false }, (err, user) => {
                 // TODO handle err
                 if (err) console.log(err);
                 if (user) {
