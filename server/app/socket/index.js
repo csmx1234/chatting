@@ -33,11 +33,13 @@ const chatapp = function (io) {
         let user_id = "";
         let user_is_vip = false;
         let user_gender = MALE;
-        let user_room = "";
-        let user_node = null;
-        let partner_node = null;
         let questions_picked = [{}];
-        ns.connected[socket.id].user_is_available = false;
+
+        let partner_socket;
+        socket.user_room = "";
+        socket.user_node = null;
+        socket.partner_node = null;
+        socket.user_is_available = false;
 
         // sends user count
         io.to(socket.id).emit("user_count", ONLINE_USER);
@@ -138,13 +140,13 @@ const chatapp = function (io) {
         // join room
         socket.on('new_match', getting_gender => {
             // if user is already in the queue, do not add him back into the queue
-            if (ns.connected[socket.id].user_is_available) {
+            if (socket.user_is_available) {
                 console.log(`${username} is already in queue`);
                 return;
             }
 
             // otherwise updates user's availability
-            ns.connected[socket.id].user_is_available = true;
+            socket.user_is_available = true;
             userModel.findByIdAndUpdate(user_id, { is_available: true }, { upsert: true }).exec();
 
             const random_gender = user_is_vip ? (user_gender == MALE ? FEMALE : MALE) : (Math.random() * 10 > 5 ? MALE : FEMALE);
@@ -154,62 +156,79 @@ const chatapp = function (io) {
 
             // insert user into queue and get a node from it
             Queue.insertUser(data, (node) => {
-                user_node = node;
+                socket.user_node = node;
                 console.log("got user node");
             });
 
             // user wait for couple seconds, then start to find partner
-            Queue.findPartner(user_node, (err, node) => {
+            Queue.findPartner(socket.user_node, (err, node) => {
                 // cannot find partner within certain waiting time
                 if (err) {
                     console.log(err);
                     return;
                 }
 
-                partner_node = node;
+                // assign user_node and partner_node to both sockets
+                let user_node = socket.user_node;
+                let partner_node = node;
+                let partner_id = partner_node.chat_id;
+                let user_room;
+                socket.partner_node = node;
+                partner_socket = ns.connected[partner_id];
+                partner_socket.partner_node = user_node;
                 console.log("got partner node");
 
-                // check if users are online, if not tell self partner has left
+                // check if partner and self are both online, if not tell self partner has left
                 // TODO keep finding if partner has left during finding
-                if (null == ns.connected[partner_node.chat_id]) {
+                if (null == partner_socket) {
                     console.log(`lost connection on ${partner_node.username}, quit now`);
                     io.to(socket.id).emit("partner_left_room");
                     return;
                 }
-                if (null == ns.connected[socket.id]) {
+
+                if ( null == ns.connected[socket.id]) {
                     console.log(`lost connection on ${username}, quit now`);
-                    io.to(partner_node.chat_id).emit("partner_left_room");
+                    socket.to(partner_id).emit("partner_left_room");
                     return;
                 }
 
-                // create user room by hashing both chat_id and timestamp
-                user_room = hash(socket.id + partner_node.chat_id + Date.now());
-                user_node.new_room = user_room;
-                partner_node.new_room = user_room;
+                // create user room by hashing both chat_id and timestamp, saves the user room in both sockets and marks partner's queue node as found
+                user_room = hash(socket.id + partner_id + Date.now());
+                socket.user_room = user_room;
+                partner_socket.user_room = user_room;
+                partner_node.found = true;
+
+                // let both socket join room
                 socket.join(user_room);
-                ns.connected[partner_node.chat_id].join(user_room);
+                partner_socket.join(user_room);
                 console.log(`${username} and ${partner_node.username} joining room ${user_room}`);
 
                 // updates status for both users
                 userModel.findByIdAndUpdate(user_id, { chat_room: user_room, partner_id: partner_node.user_id, is_available: false }, { upsert: true }, (err, user) => {
                     // TODO handle err
-                    if (err) console.log(err);
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
                     if (user) {
                         // TODO send more info
                         console.log("sending stuff");
-                        ns.connected[socket.id].user_is_available = false;
+                        socket.user_is_available = false;
                         socket.emit('new_match', partner_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
                     else
                         console.log("newMatch user not found");
                 });
-                userModel.findByIdAndUpdate(partner_node.user_id, { chat_room: user_room, partner_id: partner_node.user_id, is_available: false }, (err, user) => {
+                userModel.findByIdAndUpdate(partner_node.user_id, { chat_room: user_room, partner_id: user_id, is_available: false }, { upsert: true }, (err, user) => {
                     // TODO handle err
-                    if (err) console.log(err);
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
                     if (user) {
-                        ns.connected[partner_node.chat_id].user_is_available = false;
-                        ns.connected[partner_node.chat_id].emit('new_match', user_node.toJSON());
+                        partner_socket.user_is_available = false;
+                        partner_socket.emit('new_match', user_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
                     else
@@ -220,29 +239,29 @@ const chatapp = function (io) {
 
         // handles new message
         socket.on('new_message', data => {
-            if ("" == user_room) {
+            if ("" == socket.user_room) {
                 userModel.findById(user_id, (err, user) => {
-                    user_room = user.chat_room;
-                    console.log(`${username} says: ${data} to ${user_room}`);
-                    socket.to(user_room).emit('message', username, data);
+                    socket.user_room = user.chat_room;
+                    console.log(`${username} says: ${data} to ${socket.user_room}`);
+                    socket.to(socket.user_room).emit('message', username, data);
                 })
             }
             else {
-                console.log(`${username} says: ${data} to ${user_room}`);
-                socket.to(user_room).emit('message', username, data);
+                console.log(`${username} says: ${data} to ${socket.user_room}`);
+                socket.to(socket.user_room).emit('message', username, data);
             }
         });
 
         // leaves the room
         socket.on('leaving_room', () => {
-            socket.leave(user_room);
-            console.log(`${username} is leaving the ${user_room}`);
+            socket.leave(socket.user_room);
+            console.log(`${username} is leaving the ${socket.user_room}`);
             io.to(socket.id).emit("i_left_room");
-            socket.to(user_room).emit("partner_left_room");
-            user_room = "";
-            user_node = null;
-            partner_node = null;
-            ns.connected[socket.id].user_is_available = false;
+            socket.to(socket.user_room).emit("partner_left_room");
+            socket.user_room = "";
+            socket.user_node = null;
+            socket.partner_node = null;
+            socket.user_is_available = false;
 
             // THIS IS ASYNC
             // TO THINK ABOUT: MAKE USER FIND NEW PARTNER AFTER DATABASE SYNC
@@ -259,9 +278,9 @@ const chatapp = function (io) {
 
         // removes user online status from database
         socket.on('disconnect', reason => {
-            // removes the user from node if in the queue
-            if (null != user_node) {
-                Queue.removeUser(user_node);
+            // removes the user from queue if quits while finding
+            if (null != socket.user_node) {
+                Queue.removeUser(socket.user_node);
             }
 
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false, is_available: false }, (err, user) => {

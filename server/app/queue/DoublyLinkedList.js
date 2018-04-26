@@ -10,7 +10,7 @@ function Node({ user_id, username, chat_id, is_vip, gender, gender_pref, questio
     this.gender = gender;
     this.gender_pref = gender_pref;
     this.questions_picked = questions_picked;
-    this.new_room = null;
+    this.found = false;
     // this.partner = null;
     this.previous = null;
     this.next = null;

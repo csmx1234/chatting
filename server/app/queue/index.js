@@ -56,9 +56,9 @@ UserQueue.findPartner = function (my_queue_obj, callback) {
         let searched_candidates = 0;
         let matching_percent = 0;
 
-        console.log(`${my_queue_obj.username} starts to find candidates`);
+        console.log(`${my_queue_obj.username} starts to find candidates and my_queue_obj.found is ${my_queue_obj.found}`);
         // if has already been picked up by other people, just leave
-        if (null != my_queue_obj.new_room) {
+        if (my_queue_obj.found) {
             callback(`Err: ${my_queue_obj.username} has been taken`);
             return;
         }
