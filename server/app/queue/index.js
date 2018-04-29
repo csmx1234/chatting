@@ -20,7 +20,12 @@ if (config.dev) {
 UserQueue.insertUser = function (data, callback) {
     const my_queue = (data.gender == MALE ? male_queue : female_queue);
     console.log(`my_queue is ${my_queue === male_queue ? "male_queue" : "female_queue"}`)
-    callback(my_queue.enqueue(data));
+    const my_node = my_queue.enqueue(data);
+    if (null == my_node) {
+        callback("Err: user already in queue");
+        return;
+    }
+    callback(null, my_node);
     my_queue.print();
 }
 

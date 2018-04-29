@@ -36,6 +36,15 @@ const DoublyLinkedList = function () {
 
 // adds a new node to the tail
 DoublyLinkedList.prototype.enqueue = function (data) {
+    // boundary check from tail to head
+    let itr = this.tail;
+    while ( itr != this.head ) {
+        if (itr.chat_id == data.chat_id) {
+            return null;
+        }
+        itr = itr.prev;
+    }
+
     const node = new Node(data);
     node.prev = this.tail.prev;
     this.tail.prev.next = node;
