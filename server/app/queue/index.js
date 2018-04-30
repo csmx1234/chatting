@@ -30,6 +30,12 @@ UserQueue.insertUser = function (data, callback) {
 }
 
 UserQueue.findPartner = function (my_queue_obj, callback) {
+    // boundary check, if my_queue_obj is null, return err
+    if (null == my_queue_obj) {
+        callback("Err: user has already been taken, and partner has already left");
+        return;
+    }
+
     const my_queue = (my_queue_obj.gender == MALE ? male_queue : female_queue);
 
     // wait for several seconds for other candidates to join
