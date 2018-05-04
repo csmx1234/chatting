@@ -39,8 +39,8 @@ const chatapp = function (io) {
         socket.user_room = "";
         socket.user_node = null;
         socket.partner_node = null;
-        socket.user_is_available = false;
-        socket.user_finding_or_chatting = false;
+        socket.user_is_finding = false;
+        socket.user_is_chatting = false;
 
         // sends user count
         io.to(socket.id).emit("user_count", ONLINE_USER);
@@ -98,7 +98,7 @@ const chatapp = function (io) {
                                     socket.join(user.chat_room);
                                     const partner_JSON = { is_vip: partner.is_vip, gender: config.gendToStr(partner.gender), questions_picked: partner.questions_picked }
                                     socket.emit('new_match', partner_JSON);
-                                    socket.user_finding_or_chatting = true;
+                                    socket.user_is_chatting = true;
                                     console.log(`${user.username} rejoined the room ${user.chat_room}`);
                                 }
 
@@ -148,14 +148,13 @@ const chatapp = function (io) {
         // join room
         socket.on('new_match', getting_gender => {
             // if user is already in the queue, do not add him back into the queue
-            if (socket.user_finding_or_chatting) {
-                console.log(`${username} is already in queue`);
+            if (socket.user_is_finding || socket.user_is_chatting) {
+                console.log(`${username} is already in queue or chat room`);
                 return;
             }
 
             // otherwise updates user's availability
-            socket.user_is_available = true;
-            socket.user_finding_or_chatting = true;
+            socket.user_is_finding = true;
             userModel.findByIdAndUpdate(user_id, { is_available: true }, { upsert: true }).exec();
 
             const random_gender = user_is_vip ? (user_gender == MALE ? FEMALE : MALE) : (Math.random() * 10 > 5 ? MALE : FEMALE);
@@ -227,7 +226,8 @@ const chatapp = function (io) {
                     if (user) {
                         // TODO send more info
                         console.log("sending stuff");
-                        socket.user_is_available = false;
+                        socket.user_is_finding = false;
+                        socket.user_is_chatting = true;
                         socket.emit('new_match', partner_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
@@ -241,7 +241,8 @@ const chatapp = function (io) {
                         return;
                     }
                     if (user) {
-                        partner_socket.user_is_available = false;
+                        partner_socket.user_is_finding = false;
+                        partner_socket.user_is_chatting = true;
                         partner_socket.emit('new_match', user_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
@@ -268,8 +269,8 @@ const chatapp = function (io) {
 
         // leaves the room
         socket.on('leaving_room', () => {
-            // boundary check: if user is able to leave, cannot leave
-            if (!socket.user_finding_or_chatting) {
+            // user quits before finds partner
+            if (!socket.user_is_chatting) {
                 return;
             }
             socket.leave(socket.user_room);
@@ -279,8 +280,8 @@ const chatapp = function (io) {
             socket.user_room = "";
             socket.user_node = null;
             socket.partner_node = null;
-            socket.user_is_available = false;
-            socket.user_finding_or_chatting = false;
+            socket.user_is_finding = false;
+            socket.user_is_chatting = false;
 
             // THIS IS ASYNC
             // TO THINK ABOUT: MAKE USER FIND NEW PARTNER AFTER DATABASE SYNC

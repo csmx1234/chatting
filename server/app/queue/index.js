@@ -80,7 +80,7 @@ UserQueue.findPartner = function (my_queue_obj, callback) {
             while (searching_queue.tail != itr && tried_candidates != config.candidate_count && searched_candidates != config.max_candidate_count) {
                 searching_queue.print();
                 console.log(`${my_queue_obj.username} is visiting ${itr.username}`);
-                if (itr.user_id == my_queue_obj.user_id || null != itr.new_room) {
+                if (itr.user_id == my_queue_obj.user_id || null != itr.new_room || (itr.is_vip && my_queue_obj.gender != itr.gender_pref)) {
                     itr = itr.next;
                     console.log("passed");
                 } else if (!itr.is_vip || (itr.is_vip && my_queue_obj.gender == itr.gender_pref)) {
