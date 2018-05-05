@@ -2,7 +2,7 @@
   div#app
     // for testing
     h3(v-if="isTest")
-      | dev
+      | dev {{getUsername}}
       br
       | token: {{need_to_delete_token}}
       br
@@ -55,7 +55,8 @@ export default {
       "getMsgs",
       "getFindingStatus",
       "getChattingStatus",
-      "getConnectedStatus"
+      "getConnectedStatus",
+	  "getUsername"
     ]),
     isTest: function() {
       return config.TEST;

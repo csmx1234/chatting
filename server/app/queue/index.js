@@ -80,19 +80,24 @@ UserQueue.findPartner = function (my_queue_obj, callback) {
             while (searching_queue.tail != itr && tried_candidates != config.candidate_count && searched_candidates != config.max_candidate_count) {
                 searching_queue.print();
                 console.log(`${my_queue_obj.username} is visiting ${itr.username}`);
-                if (itr.user_id == my_queue_obj.user_id || null != itr.new_room || (itr.is_vip && my_queue_obj.gender != itr.gender_pref)) {
+                if (itr.user_id == my_queue_obj.user_id || null != itr.new_room) {
                     itr = itr.next;
                     console.log("passed");
-                } else if (!itr.is_vip || (itr.is_vip && my_queue_obj.gender == itr.gender_pref)) {
-                    // TODO write matching algorithm
-                    const this_matching_percent = Math.round(Math.random() * 100);
-                    if (this_matching_percent > matching_percent) {
-                        most_optimal = itr;
-                        matching_percent = this_matching_percent;
-                        itr = itr.next;
-                        console.log("set as candidate");
+                } else {
+                    if (itr.is_vip && my_queue_obj.gender != itr.gender_pref) {
+                        console.log(`passed itr_is_vip: ${itr.is_vip} my_queue_obj.gender: ${my_queue_obj.gender} itr_gender_pref: ${itr.gender_pref}`);
                     }
-                    tried_candidates++;
+                    if (!itr.is_vip || (itr.is_vip && my_queue_obj.gender == itr.gender_pref)) {
+                        // TODO write matching algorithm
+                        const this_matching_percent = Math.round(Math.random() * 100);
+                        if (this_matching_percent > matching_percent) {
+                            most_optimal = itr;
+                            matching_percent = this_matching_percent;
+                            console.log("set as candidate");
+                        }
+                        tried_candidates++;
+                    }
+                    itr = itr.next;
                 }
                 searched_candidates++;
             }

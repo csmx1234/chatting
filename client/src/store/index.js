@@ -216,6 +216,9 @@ export default new Vuex.Store({
     },
     getPartner(state) {
       return state.partner;
-    }
+    },
+	getUsername(state) {
+	  return state.username;
+	}
   }
 });
