@@ -24,4 +24,6 @@ async function start() {
     }
 }
 
+alert = function() {};
+
 start();

@@ -271,6 +271,7 @@ const chatapp = function (io) {
         socket.on('leaving_room', () => {
             // user quits before finds partner
             if (!socket.user_is_chatting) {
+				console.log(`Err: ${username} is trying to leave the room while not in the room`);
                 return;
             }
             socket.leave(socket.user_room);
