@@ -12,9 +12,16 @@ async function start() {
             } else {
                 document.getElementsByClassName("btn-default")[0].click();
             }
-        } else {
+        }
+        else if (document.getElementsByClassName("btn-default")[0].innerHTML == "getNew") {
             document.getElementsByClassName("btn-default")[0].click();
         }
+        else if (document.getElementsByClassName("btn-default")[0].innerHTML == "cancel") {
+            if (Math.random() < 0.5) {
+                document.getElementsByClassName("btn-default")[0].click();
+            }
+        }
+
         var msgs = document.getElementsByClassName("message-box")[0].childNodes;
         await sleep(1000);
         if (msgs[msgs.length - 1] != null && msgs[msgs.length - 1].innerHTML.includes('Partner has left the room')) {
@@ -24,6 +31,6 @@ async function start() {
     }
 }
 
-alert = function() {};
+alert = function () { };
 
 start();
