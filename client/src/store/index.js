@@ -15,8 +15,9 @@ export default new Vuex.Store({
     login: false,
     connected: false,
     chatting: false,
-    finding: false,
+    matching: false,
     username: "",
+    fresh_start: true,
 
     // dev state
     full_addr: "",
@@ -54,7 +55,7 @@ export default new Vuex.Store({
     getNewMatch(state, gender) {
       state.partner = {};
       state.messages = [];
-      state.finding = true;
+      state.matching = true;
       if (gender == config.MALE) {
         state.socket.emit("new_match", config.MALE);
       } else if (gender == config.FEMALE) {
@@ -62,6 +63,13 @@ export default new Vuex.Store({
       } else {
         state.socket.emit("new_match", config.RANDOM);
       }
+    },
+
+    cancelMatch(state) {
+      state.partner = {};
+      state.messages = [];
+      state.matching = false;
+      state.socket.emit("cancel_match");
     },
 
     leaveRoom(state) {
@@ -75,7 +83,7 @@ export default new Vuex.Store({
       state.login = false;
       state.connected = false;
       state.chatting = false;
-      state.finding = false;
+      state.matching = false;
       state.username = "";
       state.messages = [];
       state.socket.close();
@@ -147,8 +155,8 @@ export default new Vuex.Store({
       state.socket.on("reconnect", () => {
         alert("重新连上了!");
         state.socket.emit("send_token", window.localStorage.getItem("token"));
-        if (state.finding)
-          state.finding = false;
+        if (state.matching)
+          state.matching = false;
       });
 
       state.socket.on("reconnecting", () => {
@@ -176,7 +184,15 @@ export default new Vuex.Store({
       });
 
       state.socket.on("new_match", (partner) => {
-        state.finding = false;
+        // boundary check
+        if (!state.matching && !state.fresh_start) {
+          console.log("Err: user is not trying to match");
+          return;
+        }
+        if (state.fresh_start) {
+          state.fresh_start = false;
+        }
+        state.matching = false;
         state.chatting = true;
         state.partner = partner;
       });
@@ -185,7 +201,7 @@ export default new Vuex.Store({
       });
 
       state.socket.on("partner_left_room", () => {
-        state.finding = false;
+        state.matching = false;
         state.chatting = false;
         state.socket.emit("leaving_room");
         state.messages.push("Partner has left the room");
@@ -211,14 +227,14 @@ export default new Vuex.Store({
     getUserCount(state) {
       return state.user_count;
     },
-    getFindingStatus(state) {
-      return state.finding;
+    getMatchingStatus(state) {
+      return state.matching;
     },
     getPartner(state) {
       return state.partner;
     },
-	getUsername(state) {
-	  return state.username;
-	}
+    getUsername(state) {
+      return state.username;
+    }
   }
 });

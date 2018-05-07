@@ -40,6 +40,12 @@ UserQueue.findPartner = function (my_queue_obj, callback) {
 
     // wait for several seconds for other candidates to join
     setTimeout(() => {
+        // boundary check, if quits matching in the middle, return err
+        if (my_queue_obj.quit_matching) {
+            callback(`Err: ${my_queue_obj.username} quits matching`);
+            return;
+        }
+
         let searching_queue = (my_queue_obj.gender_pref == MALE ? male_queue : female_queue);
         console.log(`searching_queue is ${searching_queue === male_queue ? "male_queue" : "female_queue"} and i am ${my_queue_obj.username}`)
         console.log(`${config.gendToStr(my_queue_obj.gender_pref)} searching queue has count of: ${searching_queue.count}`);
@@ -118,6 +124,11 @@ UserQueue.findPartner = function (my_queue_obj, callback) {
             }
         }
     }, config.waiting_time);
+};
+
+UserQueue.printQueue = function (gender) {
+    const searching_queue = (gender == MALE ? male_queue : female_queue);
+    searching_queue.print();
 };
 
 UserQueue.removeUser = function (my_queue_obj) {

@@ -8,7 +8,7 @@
       br
       | socket: {{need_to_delete_socket}}
 
-    h3(v-if="getFindingStatus")
+    h3(v-if="getMatchingStatus")
       | 正在寻找聊天对象
 
     // message list
@@ -18,8 +18,9 @@
 
     // input box
     .input-box
-      button(:disabled="getFindingStatus || !getConnectedStatus" v-if="!getChattingStatus" class="btn btn-default" @click='newPartner') getNew
-      button(:disabled="!getChattingStatus || !getConnectedStatus" v-if="getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
+      button(:disabled="getChattingStatus || getMatchingStatus || !getConnectedStatus" v-if="!getMatchingStatus && !getChattingStatus" class="btn btn-default" @click='newPartner') getNew
+      button(:disabled="getChattingStatus || !getConnectedStatus" v-if="getMatchingStatus && !getChattingStatus" class="btn btn-default" @click='cancelMatch') cancel
+      button(:disabled="!getChattingStatus || !getConnectedStatus" v-if="!getMatchingStatus && getChattingStatus" class="btn btn-default" @click='leaveRoom') leave
       input(:disabled="!getChattingStatus || !getConnectedStatus" class="form-control" v-model='message' @keyup.enter='emitMsg' placeholder='please enter message')
       button(:disabled="!getChattingStatus || !getConnectedStatus" class="btn btn-default" @click='emitMsg') send
 
@@ -46,6 +47,9 @@ export default {
     newPartner: function() {
       this.$store.commit("getNewMatch", this.$store.state.RANDOM);
     },
+    cancelMatch: function() {
+      this.$store.commit("cancelMatch");
+    },
     leaveRoom: function() {
       this.$store.commit("leaveRoom");
     }
@@ -53,10 +57,10 @@ export default {
   computed: {
     ...mapGetters([
       "getMsgs",
-      "getFindingStatus",
+      "getMatchingStatus",
       "getChattingStatus",
       "getConnectedStatus",
-	  "getUsername"
+      "getUsername"
     ]),
     isTest: function() {
       return config.TEST;

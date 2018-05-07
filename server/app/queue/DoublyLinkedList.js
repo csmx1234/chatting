@@ -11,6 +11,7 @@ function Node({ user_id, username, chat_id, is_vip, gender, gender_pref, questio
     this.gender_pref = gender_pref;
     this.questions_picked = questions_picked;
     this.found = false;
+    this.quit_matching = false;
     // this.partner = null;
     this.previous = null;
     this.next = null;
@@ -38,7 +39,7 @@ const DoublyLinkedList = function () {
 DoublyLinkedList.prototype.enqueue = function (data) {
     // boundary check from tail to head
     let itr = this.tail;
-    while ( itr != this.head ) {
+    while (itr != this.head) {
         if (itr.chat_id == data.chat_id) {
             return null;
         }
@@ -82,8 +83,12 @@ DoublyLinkedList.prototype.getNode = function (index) {
 
 // delete a node given a node object
 DoublyLinkedList.prototype.remove = function (node) {
-    if (null == node || null == node.prev || null == node.next) {
-        console.log("Err: node has already been removed");
+    if (null == node) {
+        console.log("Err: node does not exist");
+        return;
+    }
+    if (null == node.prev || null == node.next) {
+        console.log(`Err: node ${node.username} has already been removed`);
         return;
     }
     node.prev.next = node.next;

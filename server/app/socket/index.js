@@ -39,8 +39,38 @@ const chatapp = function (io) {
         socket.user_room = "";
         socket.user_node = null;
         socket.partner_node = null;
-        socket.user_is_finding = false;
+        socket.user_is_matching = false;
         socket.user_is_chatting = false;
+
+        // update user count
+        const updateUserCount = function () {
+            io.emit("user_count", ONLINE_USER);
+            console.log(`updated usercount to ${ONLINE_USER}`);
+        }
+
+        // helper function to leave the room
+        const leaveRoom = function () {
+            socket.leave(socket.user_room);
+            console.log(`${username} is leaving the ${socket.user_room}`);
+            io.to(socket.id).emit("i_left_room");
+            socket.to(socket.user_room).emit("partner_left_room");
+            socket.user_room = "";
+            socket.user_node = null;
+            socket.partner_node = null;
+            socket.user_is_chatting = false;
+
+            userModel.findByIdAndUpdate(user_id, { chat_room: null, partner_id: null, is_available: false }, (err, user) => {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                if (user) {
+                    console.log(`${username} has left the ${user.chat_room}`);
+                }
+                else
+                    console.log("leaveRoom user not found");
+            });
+        }
 
         // sends user count
         io.to(socket.id).emit("user_count", ONLINE_USER);
@@ -134,7 +164,7 @@ const chatapp = function (io) {
                         // update total count
                         if (newConn) {
                             ONLINE_USER++;
-                            updateUserCount(io, ONLINE_USER);
+                            updateUserCount();
                         }
 
                         console.log(`${user.username} has logged in`);
@@ -148,13 +178,13 @@ const chatapp = function (io) {
         // join room
         socket.on('new_match', getting_gender => {
             // if user is already in the queue, do not add him back into the queue
-            if (socket.user_is_finding || socket.user_is_chatting) {
+            if (socket.user_is_matching || socket.user_is_chatting) {
                 console.log(`${username} is already in queue or chat room`);
                 return;
             }
 
             // otherwise updates user's availability
-            socket.user_is_finding = true;
+            socket.user_is_matching = true;
             userModel.findByIdAndUpdate(user_id, { is_available: true }, { upsert: true }).exec();
 
             const random_gender = user_is_vip ? (user_gender == MALE ? FEMALE : MALE) : (Math.random() * 10 > 5 ? MALE : FEMALE);
@@ -192,7 +222,7 @@ const chatapp = function (io) {
                 console.log("got partner node");
 
                 // check if partner and self are both online, if not tell self partner has left
-                // TODO keep finding if partner has left during finding
+                // TODO keep matching if partner has left during matching
                 if (null == partner_socket) {
                     console.log(`lost connection on ${partner_node.username}, quit now`);
                     io.to(socket.id).emit("partner_left_room");
@@ -226,7 +256,7 @@ const chatapp = function (io) {
                     if (user) {
                         // TODO send more info
                         console.log("sending stuff");
-                        socket.user_is_finding = false;
+                        socket.user_is_matching = false;
                         socket.user_is_chatting = true;
                         socket.emit('new_match', partner_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
@@ -241,7 +271,7 @@ const chatapp = function (io) {
                         return;
                     }
                     if (user) {
-                        partner_socket.user_is_finding = false;
+                        partner_socket.user_is_matching = false;
                         partner_socket.user_is_chatting = true;
                         partner_socket.emit('new_match', user_node.toJSON());
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
@@ -250,6 +280,29 @@ const chatapp = function (io) {
                         console.log("newMatch user not found");
                 });
             });
+        });
+
+        // cancels matching
+        socket.on('cancel_match', () => {
+            console.log(`canceling matching for ${username}`)
+            // boundary check if not in searching mode, quit
+            if (!socket.user_is_matching) {
+                console.log(`Err: ${username} is trying to cancel while not matching`);
+                return;
+            }
+
+            // if already joined a room
+            if (socket.user_room) {
+                leaveRoom();
+            }
+
+            // if in the searching queue
+            if (null != socket.user_node) {
+                socket.user_node.quit_matching = true;
+                Queue.removeUser(socket.user_node);
+            }
+
+            socket.user_is_matching = false;
         });
 
         // handles new message
@@ -271,36 +324,18 @@ const chatapp = function (io) {
         socket.on('leaving_room', () => {
             // user quits before finds partner
             if (!socket.user_is_chatting) {
-				console.log(`Err: ${username} is trying to leave the room while not in the room`);
+                console.log(`Err: ${username} is trying to leave the room while not in the room`);
                 return;
             }
-            socket.leave(socket.user_room);
-            console.log(`${username} is leaving the ${socket.user_room}`);
-            io.to(socket.id).emit("i_left_room");
-            socket.to(socket.user_room).emit("partner_left_room");
-            socket.user_room = "";
-            socket.user_node = null;
-            socket.partner_node = null;
-            socket.user_is_finding = false;
-            socket.user_is_chatting = false;
 
-            // THIS IS ASYNC
-            // TO THINK ABOUT: MAKE USER FIND NEW PARTNER AFTER DATABASE SYNC
-            userModel.findByIdAndUpdate(user_id, { chat_room: null, partner_id: null, is_available: false }, (err, user) => {
-                // TODO handle err
-                if (err) console.log(err);
-                if (user) {
-                    console.log(`${username} has left the ${user.chat_room}`);
-                }
-                else
-                    console.log("leaveRoom user not found");
-            });
+            leaveRoom();
         });
 
         // removes user online status from database
         socket.on('disconnect', reason => {
-            // removes the user from queue if quits while finding
+            // removes the user from queue if quits while matching
             if (null != socket.user_node) {
+                socket.user_node.quit_matching = true;
                 Queue.removeUser(socket.user_node);
             }
 
@@ -312,17 +347,11 @@ const chatapp = function (io) {
                 if (user) {
                     console.log(`${user.username} has logged out`);
                     ONLINE_USER--;
-                    updateUserCount(io, ONLINE_USER);
+                    updateUserCount();
                 }
             });
         });
     })
 };
-
-// update user count
-const updateUserCount = function (io, count) {
-    io.emit("user_count", count);
-    console.log(`updated usercount to ${count}`);
-}
 
 module.exports = chatapp;
