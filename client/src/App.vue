@@ -116,6 +116,10 @@ export default {
   margin-top: 20px;
 }
 
+.app-body {
+  margin-top: 40px;
+}
+
 .user-count {
   position: absolute;
   top: 0px;

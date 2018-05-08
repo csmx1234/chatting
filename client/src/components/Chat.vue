@@ -10,10 +10,13 @@
     
     .partner-info(v-if='getLoginStatus && getChattingStatus')
       | Gender: {{ getPartner.gender }} Vip: {{ getPartner.is_vip }}
-      .partner-online-status(v-if="getChattingStatus" v-bind:class="{'partner-online':getPartnerOnlineStatus, 'partner-offline':!getPartnerOnlineStatus}")
+      .partner-online-status(v-if="getChattingStatus" v-bind:class="{'partner-online':getPartnerOnlineStatus && getConnectedStatus, 'partner-offline':!getPartnerOnlineStatus && getConnectedStatus}")
       
 
     h3(v-if="getMatchingStatus")
+      br
+      br
+      br
       | 正在寻找聊天对象
 
     // message list

@@ -1,5 +1,5 @@
 <template lang="pug">
-  div#register
+  div#register(class="app-body")
     h1
       | Login
     .userpass-box

@@ -1,5 +1,5 @@
 <template lang="pug">
-  div#app
+  div#app(class="app-body")
     h1
       | Helloworld
 </template>

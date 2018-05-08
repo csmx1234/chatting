@@ -81,14 +81,21 @@ export default new Vuex.Store({
     // simply changes the status and resets message
     logout(state) {
       window.localStorage.removeItem("token");
-      state.fresh_start = true;
+      state.user_count = 0;
       state.login = false;
       state.connected = false;
       state.chatting = false;
       state.matching = false;
       state.username = "";
+      state.fresh_start = true;
+
+      // chat state
+      state.chat_id = null;
+      state.partner_online = false;
+      state.partner = {};
       state.messages = [];
       state.socket.close();
+      state.socket = null;
     }
   },
   actions: {

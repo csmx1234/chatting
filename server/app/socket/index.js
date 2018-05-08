@@ -119,9 +119,17 @@ const chatapp = function (io) {
                                 // if old room still exists
                                 if (partner.chat_room == user.chat_room) {
                                     socket.join(user.chat_room);
+                                    socket.user_room = user.chat_room;
                                     const partner_JSON = { is_vip: partner.is_vip, gender: config.gendToStr(partner.gender), questions_picked: partner.questions_picked }
                                     socket.emit('new_match', partner_JSON);
-                                    socket.emit('partner_online');
+                                    if (partner.is_online) {
+                                        console.log(`${user.username} shoots online status to self and ${partner.username}`);
+                                        io.to(socket.id).emit('partner_online');
+                                        socket.to(socket.user_room).emit('partner_online');
+                                    } else {
+                                        console.log(`${user.username} shoots offline status to self`);
+                                        io.to(socket.id).emit('partner_offline');
+                                    }
                                     socket.user_is_chatting = true;
                                     console.log(`${user.username} rejoined the room ${user.chat_room}`);
                                 }
@@ -323,11 +331,13 @@ const chatapp = function (io) {
         socket.on('disconnect', reason => {
             // removes the user from queue if quits while matching
             if (socket.user_node) {
+                console.log(`${username} decided to quit matching`);
                 socket.user_node.quit_matching = true;
                 Queue.removeUser(socket.user_node);
             }
 
             if (socket.user_room) {
+                console.log(`${username} shoots offline status to partner`);
                 socket.to(socket.user_room).emit('partner_offline');
             }
 
