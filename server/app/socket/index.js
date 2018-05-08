@@ -109,14 +109,7 @@ const chatapp = function (io) {
                         // join old room if room exists and partner id exist as well
                         if (null != user.chat_room && null != user.partner_id) {
                             console.log(`${user.username} rejoining the room ${user.chat_room}`);
-                            //io.in(user.chat_room).clients((err, clients) => {
-                            //if (err) {
-                            //console.log(err);
-                            //return;
-                            //}
 
-                            // when reconnect, rejoin the room if still exist
-                            //if (0 != clients.length) {
                             userModel.findById(user.partner_id, (err, partner) => {
                                 if (err) {
                                     console.log(err);
@@ -128,6 +121,7 @@ const chatapp = function (io) {
                                     socket.join(user.chat_room);
                                     const partner_JSON = { is_vip: partner.is_vip, gender: config.gendToStr(partner.gender), questions_picked: partner.questions_picked }
                                     socket.emit('new_match', partner_JSON);
+                                    socket.emit('partner_online');
                                     socket.user_is_chatting = true;
                                     console.log(`${user.username} rejoined the room ${user.chat_room}`);
                                 }
@@ -140,15 +134,7 @@ const chatapp = function (io) {
                                     });
                                 }
                             });
-                            //}
 
-                            //else {
-                            //userModel.findByIdAndUpdate(id, { chat_room: null }, (err, user) => {
-                            //console.log(`removing the old room from database for ${user.username}`)
-                            //io.to(socket.id).emit("partner_left_room");
-                            //});
-                            //}
-                            //})
                         }
 
                         // assign value to new socket (this socket)
@@ -259,6 +245,7 @@ const chatapp = function (io) {
                         socket.user_is_matching = false;
                         socket.user_is_chatting = true;
                         socket.emit('new_match', partner_node.toJSON());
+                        socket.emit('partner_online');
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
                     else
@@ -274,6 +261,7 @@ const chatapp = function (io) {
                         partner_socket.user_is_matching = false;
                         partner_socket.user_is_chatting = true;
                         partner_socket.emit('new_match', user_node.toJSON());
+                        partner_socket.emit('partner_online');
                         console.log(`${user.username} has joined the room \"${user_room}\"`);
                     }
                     else
@@ -334,9 +322,13 @@ const chatapp = function (io) {
         // removes user online status from database
         socket.on('disconnect', reason => {
             // removes the user from queue if quits while matching
-            if (null != socket.user_node) {
+            if (socket.user_node) {
                 socket.user_node.quit_matching = true;
                 Queue.removeUser(socket.user_node);
+            }
+
+            if (socket.user_room) {
+                socket.to(socket.user_room).emit('partner_offline');
             }
 
             userModel.findOneAndUpdate({ chat_id: socket.id }, { chat_id: null, is_online: false, is_available: false }, (err, user) => {

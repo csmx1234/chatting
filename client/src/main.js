@@ -5,7 +5,9 @@ import { router } from "./router";
 import store from "./store";
 import App from "./App";
 import VueChatScroll from 'vue-chat-scroll';
+import VueKonva from 'vue-konva'
 
+Vue.use(VueKonva);
 Vue.use(VueChatScroll);
 Vue.config.productionTip = false;
 

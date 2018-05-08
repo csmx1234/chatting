@@ -1,5 +1,5 @@
 <template lang="pug">
-  div#app
+  div#app(class="app-header")
     // header
     .router-links
       .user-count(v-if='getLoginStatus')
@@ -26,10 +26,9 @@
           i(class="glyphicon glyphicon-align-right")
           | Friends
 
-      .partner-info(v-if='getLoginStatus && getChattingStatus')
-        | Gender: {{ getPartner.gender }} Vip: {{ getPartner.is_vip }}
-      br
-      br
+      //- canvas(v-if='getLoginStatus' id='my_canvas' width='22' height='22')
+      //- br
+      //- br
 
     // logo
     //- img(src="./assets/logo.png")
@@ -76,6 +75,10 @@ export default {
       }
     }
   },
+  mounted: function() {
+
+    // ctx.stroke();
+  },
   methods: {
     toggleMenu: function() {
       this.friendListActive = false;
@@ -94,7 +97,7 @@ export default {
     // TODO this doesn't work
     // this.$store.dispatch("goOffline");
   },
-  computed: mapGetters(["getLoginStatus", "getChattingStatus", "getUserCount", "getPartner"])
+  computed: mapGetters(["getLoginStatus", "getChattingStatus", "getUserCount"])
 };
 </script>
 
@@ -106,8 +109,11 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 20px;
   z-index: 0;
+}
+
+.app-header {
+  margin-top: 20px;
 }
 
 .user-count {

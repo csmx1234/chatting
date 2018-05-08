@@ -1,5 +1,5 @@
 <template lang="pug">
-  div#app
+  div#app(class="chat-app")
     // for testing
     h3(v-if="isTest")
       | dev {{getUsername}}
@@ -7,6 +7,11 @@
       | token: {{need_to_delete_token}}
       br
       | socket: {{need_to_delete_socket}}
+    
+    .partner-info(v-if='getLoginStatus && getChattingStatus')
+      | Gender: {{ getPartner.gender }} Vip: {{ getPartner.is_vip }}
+      .partner-online-status(v-if="getChattingStatus" v-bind:class="{'partner-online':getPartnerOnlineStatus, 'partner-offline':!getPartnerOnlineStatus}")
+      
 
     h3(v-if="getMatchingStatus")
       | 正在寻找聊天对象
@@ -60,7 +65,10 @@ export default {
       "getMatchingStatus",
       "getChattingStatus",
       "getConnectedStatus",
-      "getUsername"
+      "getUsername",
+      "getPartner",
+      "getLoginStatus",
+      "getPartnerOnlineStatus"
     ]),
     isTest: function() {
       return config.TEST;
@@ -77,11 +85,32 @@ export default {
 
 <style lang="scss">
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
+.chat-app {
+  margin-top: 0;
+}
+
+.partner-online-status {
+  width: 200px;
+  height: 3px;
+  border-radius: 50%;
+  margin: auto;
+  background: gray;
+}
+
+.partner-online {
+  background: green;
+}
+
+.partner-offline {
+  background: red;
+}
+
 .message-box {
   position: absolute;
   width: 100%;
-  top: 4rem;
+  top: 72px;
   bottom: 3rem;
+  margin-bottom: 0;
   box-sizing: border-box;
   overflow: scroll;
   -webkit-overflow-scrolling: touch;

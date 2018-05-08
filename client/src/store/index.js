@@ -26,6 +26,7 @@ export default new Vuex.Store({
     // chat state
     socket: null,
     chat_id: null,
+    partner_online: false,
     partner: {},
     messages: []
   },
@@ -80,6 +81,7 @@ export default new Vuex.Store({
     // simply changes the status and resets message
     logout(state) {
       window.localStorage.removeItem("token");
+      state.fresh_start = true;
       state.login = false;
       state.connected = false;
       state.chatting = false;
@@ -206,6 +208,14 @@ export default new Vuex.Store({
         state.socket.emit("leaving_room");
         state.messages.push("Partner has left the room");
       });
+
+      state.socket.on("partner_online", () => {
+        state.partner_online = true;
+      });
+
+      state.socket.on("partner_offline", () => {
+        state.partner_online = false;
+      });
     }
   },
   getters: {
@@ -235,6 +245,9 @@ export default new Vuex.Store({
     },
     getUsername(state) {
       return state.username;
+    },
+    getPartnerOnlineStatus(state) {
+      return state.partner_online;
     }
   }
 });
