@@ -240,6 +240,19 @@ const chatapp = function (io) {
                 partner_socket.join(user_room);
                 console.log(`${username} and ${partner_node.username} joining room ${user_room}`);
 
+                // TODO send more info
+                socket.user_is_matching = false;
+                socket.user_is_chatting = true;
+                socket.emit('new_match', partner_node.toJSON());
+                socket.emit('partner_online');
+                console.log(`${username} has joined the room \"${user_room}\"`);
+
+                partner_socket.user_is_matching = false;
+                partner_socket.user_is_chatting = true;
+                partner_socket.emit('new_match', user_node.toJSON());
+                partner_socket.emit('partner_online');
+                console.log(`${username} has joined the room \"${user_room}\"`);
+
                 // updates status for both users
                 userModel.findByIdAndUpdate(user_id, { chat_room: user_room, partner_id: partner_node.user_id, is_available: false }, { upsert: true }, (err, user) => {
                     // TODO handle err
@@ -247,17 +260,6 @@ const chatapp = function (io) {
                         console.log(err);
                         return;
                     }
-                    if (user) {
-                        // TODO send more info
-                        console.log("sending stuff");
-                        socket.user_is_matching = false;
-                        socket.user_is_chatting = true;
-                        socket.emit('new_match', partner_node.toJSON());
-                        socket.emit('partner_online');
-                        console.log(`${user.username} has joined the room \"${user_room}\"`);
-                    }
-                    else
-                        console.log("newMatch user not found");
                 });
                 userModel.findByIdAndUpdate(partner_node.user_id, { chat_room: user_room, partner_id: user_id, is_available: false }, { upsert: true }, (err, user) => {
                     // TODO handle err
@@ -265,31 +267,24 @@ const chatapp = function (io) {
                         console.log(err);
                         return;
                     }
-                    if (user) {
-                        partner_socket.user_is_matching = false;
-                        partner_socket.user_is_chatting = true;
-                        partner_socket.emit('new_match', user_node.toJSON());
-                        partner_socket.emit('partner_online');
-                        console.log(`${user.username} has joined the room \"${user_room}\"`);
-                    }
-                    else
-                        console.log("newMatch user not found");
                 });
             });
         });
 
         // cancels matching
         socket.on('cancel_match', () => {
-            console.log(`canceling matching for ${username}`)
+            console.log(`canceling matching for ${username}`);
+
+            // if already joined a room
+            if (socket.user_room) {
+                console.log(`has a room, need to leave`);
+                leaveRoom();
+            }
+
             // boundary check if not in searching mode, quit
             if (!socket.user_is_matching) {
                 console.log(`Err: ${username} is trying to cancel while not matching`);
                 return;
-            }
-
-            // if already joined a room
-            if (socket.user_room) {
-                leaveRoom();
             }
 
             // if in the searching queue
